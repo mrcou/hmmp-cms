@@ -1,0 +1,10 @@
+Application Version: ${ruoyi.version}
+Spring Boot Version: ${spring-boot.version}
+${AnsiColor.BRIGHT_CYAN}
+==================================================
+==         HMMP 启动成功！ 🚀                     ==
+==         端口：${server.port}                  ==
+==         环境：${spring.profiles.active}       ==
+==         时间：${date}                         ==
+==================================================
+${AnsiColor.DEFAULT}
