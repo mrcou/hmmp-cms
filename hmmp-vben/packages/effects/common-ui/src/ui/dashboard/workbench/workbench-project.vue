@@ -59,13 +59,7 @@ defineEmits(['click']);
             </div>
           </slot>
 
-          <!-- 底部信息区域支持插槽自定义 -->
-          <slot name="footer" :item="item" :index="index">
-            <div class="text-foreground/80 flex justify-between">
-              <span>{{ item.group }}</span>
-              <span>{{ item.date }}</span>
-            </div>
-          </slot>
+          <slot name="footer" :item="item" :index="index"></slot>
         </div>
       </template>
     </CardContent>
