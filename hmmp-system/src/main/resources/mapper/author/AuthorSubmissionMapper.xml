@@ -17,17 +17,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="feedback"       column="feedback"         />
         <result property="feedbackTime"   column="feedback_time"    />
         <result property="isDeleted"      column="is_deleted"       />
-        <result property="createBy"       column="create_by"        />
         <result property="createTime"     column="create_time"      />
-        <result property="updateBy"       column="update_by"        />
         <result property="updateTime"     column="update_time"      />
-        <result property="remark"         column="remark"           />
     </resultMap>
 
     <sql id="selectAuthorSubmissionVo">
         select submission_id, user_id, manuscript_id, title, abstract, keywords,
                file_path, submission_time, status, feedback, feedback_time, is_deleted,
-               create_by, create_time, update_by, update_time, remark
+               create_time, update_time
         from author_submission
     </sql>
 
@@ -77,11 +74,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="feedback != null">feedback,</if>
             <if test="feedbackTime != null">feedback_time,</if>
             <if test="isDeleted != null">is_deleted,</if>
-            <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
-            <if test="updateBy != null">update_by,</if>
             <if test="updateTime != null">update_time,</if>
-            <if test="remark != null">remark,</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="userId != null">#{userId},</if>
@@ -95,11 +89,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="feedback != null">#{feedback},</if>
             <if test="feedbackTime != null">#{feedbackTime},</if>
             <if test="isDeleted != null">#{isDeleted},</if>
-            <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
-            <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
-            <if test="remark != null">#{remark},</if>
         </trim>
     </insert>
 
@@ -117,9 +108,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="feedback != null">feedback = #{feedback},</if>
             <if test="feedbackTime != null">feedback_time = #{feedbackTime},</if>
             <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
-            <if test="updateBy != null">update_by = #{updateBy},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
-            <if test="remark != null">remark = #{remark},</if>
         </trim>
         where submission_id = #{submissionId}
     </update>

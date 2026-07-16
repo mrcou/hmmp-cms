@@ -17,6 +17,7 @@ import {
 } from 'antdv-next';
 import type { UploadChangeParam } from 'antdv-next';
 import * as authorApi from '#/api/biz/author';
+import AuthorPageShell from '../_components/author-page-shell.vue';
 
 const loading = ref(false);
 const dataSource = ref<any[]>([]);
@@ -146,8 +147,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-4">
-    <Card title="待修改稿">
+  <AuthorPageShell
+    title="待修改稿"
+    description="编辑部退回修改的稿件会显示在这里，请按反馈意见修订后重新提交。"
+  >
+    <Card :bordered="false" class="shadow-sm">
       <Table
         :columns="columns"
         :data-source="dataSource"
@@ -182,7 +186,6 @@ onMounted(() => {
       </Table>
     </Card>
 
-    <!-- 修改稿件弹窗 -->
     <Modal
       v-model:open="editModalVisible"
       title="修改稿件"
@@ -230,15 +233,10 @@ onMounted(() => {
             :max-count="1"
             @change="onEditUploadChange"
           >
-            <Button>
-              <template #icon>
-                <span>📎</span>
-              </template>
-              选择文件
-            </Button>
+            <Button>选择文件</Button>
           </Upload>
         </FormItem>
       </Form>
     </Modal>
-  </div>
+  </AuthorPageShell>
 </template>

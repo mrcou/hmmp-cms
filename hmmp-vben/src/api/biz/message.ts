@@ -86,6 +86,11 @@ export async function sendSms(data: MessageApi.Sms) {
   return requestClient.post('/message/msg/send', data);
 }
 
+/** 测试发送短信（指定服务商） */
+export async function testSendSms(data: MessageApi.Sms) {
+  return requestClient.post('/message/msg/test', data);
+}
+
 /** 删除短信 */
 export async function deleteSms(smsIds: number[]) {
   return requestClient.delete(`/message/msg/${smsIds.join(',')}`);

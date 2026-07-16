@@ -17,6 +17,7 @@ import {
   DescriptionsItem,
 } from 'antdv-next';
 import * as authorApi from '#/api/biz/author';
+import AuthorPageShell from '../_components/author-page-shell.vue';
 
 const loading = ref(false);
 const dataSource = ref<any[]>([]);
@@ -95,9 +96,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-4">
-    <Card title="稿件查询">
-      <!-- 搜索区域 -->
+  <AuthorPageShell
+    title="稿件查询"
+    description="查看您投稿的全部稿件及当前处理状态。"
+  >
+    <Card :bordered="false" class="shadow-sm">
       <Form layout="inline" class="mb-4">
         <FormItem label="稿件标题">
           <Input
@@ -156,7 +159,6 @@ onMounted(() => {
       </Table>
     </Card>
 
-    <!-- 详情弹窗 -->
     <Modal
       v-model:open="detailVisible"
       title="稿件详情"
@@ -181,5 +183,5 @@ onMounted(() => {
         <DescriptionsItem v-if="detailData.feedbackTime" label="反馈时间">{{ detailData.feedbackTime }}</DescriptionsItem>
       </Descriptions>
     </Modal>
-  </div>
+  </AuthorPageShell>
 </template>

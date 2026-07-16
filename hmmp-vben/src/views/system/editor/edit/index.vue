@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { EditorApi } from '#/api/biz/editor';
 
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import { message } from 'antdv-next';
 
@@ -14,6 +15,23 @@ const editStatusMap: Record<string, { label: string; color: string }> = {
   '2': { label: '已完成', color: 'green' },
   '3': { label: '已退回', color: 'red' },
 };
+
+/** 三级 leaf：pending=待编辑(0)，manage/detail 不强制状态 */
+const pathModeMap: Record<string, string | undefined> = {
+  pending: '0',
+  manage: undefined,
+  detail: undefined,
+};
+
+const route = useRoute();
+const router = useRouter();
+
+function resolveStatusFromRoute(): string | undefined {
+  const leaf = route.path.split('/').filter(Boolean).pop() ?? '';
+  return pathModeMap[leaf];
+}
+
+const pageMode = ref(route.path.split('/').filter(Boolean).pop() ?? 'manage');
 
 // ---------- 查询参数 ----------
 const searchForm = reactive({
@@ -70,8 +88,26 @@ const formData = reactive<EditorApi.Edit>({
 
 // ---------- 生命周期 ----------
 onMounted(() => {
+  pageMode.value = route.path.split('/').filter(Boolean).pop() ?? 'manage';
+  if (Object.keys(route.query).length > 0) {
+    router.replace({ path: route.path });
+  }
+  const forced = resolveStatusFromRoute();
+  if (forced !== undefined) {
+    searchForm.editStatus = forced;
+  }
   loadTable();
 });
+
+watch(
+  () => route.path,
+  () => {
+    pageMode.value = route.path.split('/').filter(Boolean).pop() ?? 'manage';
+    searchForm.editStatus = resolveStatusFromRoute();
+    pagination.current = 1;
+    loadTable();
+  },
+);
 
 // ---------- 方法 ----------
 async function loadTable() {
@@ -82,6 +118,10 @@ async function loadTable() {
       pageNum: pagination.current,
       pageSize: pagination.pageSize,
     };
+    const forced = resolveStatusFromRoute();
+    if (forced !== undefined) {
+      params.editStatus = forced;
+    }
     const res = await editorApi.getEditList(params);
     const data = res.data ?? res;
     tableData.value = data.rows ?? data.list ?? [];
@@ -101,7 +141,7 @@ function onSearch() {
 function onReset() {
   searchForm.manuscriptId = undefined;
   searchForm.editorName = '';
-  searchForm.editStatus = undefined;
+  searchForm.editStatus = resolveStatusFromRoute();
   pagination.current = 1;
   loadTable();
 }
@@ -166,7 +206,6 @@ function getStatusTag(status: string | undefined) {
 
 <template>
   <div class="p-4">
-    <!-- 搜索区域 -->
     <a-card class="mb-4" size="small">
       <a-form layout="inline">
         <a-form-item label="稿件ID">
@@ -175,7 +214,7 @@ function getStatusTag(status: string | undefined) {
         <a-form-item label="编辑人">
           <a-input v-model:value="searchForm.editorName" placeholder="请输入" allow-clear style="width:150px" />
         </a-form-item>
-        <a-form-item label="编辑状态">
+        <a-form-item v-if="pageMode !== 'pending'" label="编辑状态">
           <a-select v-model:value="searchForm.editStatus" placeholder="请选择" allow-clear style="width:150px">
             <a-select-option v-for="(val, key) in editStatusMap" :key="key" :value="key">
               {{ val.label }}
@@ -191,7 +230,6 @@ function getStatusTag(status: string | undefined) {
       </a-form>
     </a-card>
 
-    <!-- 表格区域 -->
     <a-card>
       <div class="mb-4">
         <a-button type="primary" @click="onCreate">新增编辑任务</a-button>
@@ -220,7 +258,6 @@ function getStatusTag(status: string | undefined) {
       </a-table>
     </a-card>
 
-    <!-- 新增/编辑弹窗 -->
     <a-modal v-model:open="formModalOpen" :title="formModalTitle" :confirm-loading="formLoading" @ok="onFormSubmit" width="600px" destroy-on-close>
       <a-form layout="vertical">
         <a-row :gutter="16">

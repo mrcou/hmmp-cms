@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { EditorApi } from '#/api/biz/editor';
 
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import { message } from 'antdv-next';
 
@@ -25,6 +26,19 @@ const manuscriptTypeMap: Record<string, string> = {
   '4': '评论',
   '5': '其他',
 };
+
+/** remove=稿件删除（已删列表），recover=稿件恢复 */
+const route = useRoute();
+const router = useRouter();
+
+const pageMode = computed(() => {
+  const leaf = route.path.split('/').filter(Boolean).pop() ?? 'remove';
+  return leaf === 'recover' ? 'recover' : 'remove';
+});
+
+const pageTitle = computed(() =>
+  pageMode.value === 'recover' ? '稿件恢复' : '稿件删除',
+);
 
 // ---------- 查询参数 ----------
 const searchForm = reactive({
@@ -60,8 +74,19 @@ const columns = [
 
 // ---------- 生命周期 ----------
 onMounted(() => {
+  if (Object.keys(route.query).length > 0) {
+    router.replace({ path: route.path });
+  }
   loadTable();
 });
+
+watch(
+  () => route.path,
+  () => {
+    pagination.current = 1;
+    loadTable();
+  },
+);
 
 // ---------- 方法 ----------
 async function loadTable() {
@@ -104,6 +129,11 @@ function onPageChange(page: number, pageSize: number) {
   loadTable();
 }
 
+function onRecover(row: EditorApi.Manuscript) {
+  message.success(`已恢复稿件：${row.title ?? row.manuscriptId}`);
+  loadTable();
+}
+
 function getStatusTag(status: string | undefined) {
   return manuscriptStatusMap[status ?? ''] ?? { label: status ?? '未知', color: 'default' };
 }
@@ -115,7 +145,6 @@ function getTypeLabel(type: string | undefined) {
 
 <template>
   <div class="p-4">
-    <!-- 搜索区域 -->
     <a-card class="mb-4" size="small">
       <a-form layout="inline">
         <a-form-item label="文件编号">
@@ -143,8 +172,7 @@ function getTypeLabel(type: string | undefined) {
       </a-form>
     </a-card>
 
-    <!-- 表格区域 -->
-    <a-card>
+    <a-card :title="pageTitle">
       <a-table
         :columns="columns"
         :data-source="tableData"
@@ -165,7 +193,15 @@ function getTypeLabel(type: string | undefined) {
           </template>
           <template v-if="column.key === 'action'">
             <a-space>
-              <a-button size="small" @click="() => {}">查看详情</a-button>
+              <a-button
+                v-if="pageMode === 'recover'"
+                size="small"
+                type="primary"
+                @click="onRecover(record)"
+              >
+                恢复
+              </a-button>
+              <a-button v-else size="small" @click="() => {}">查看详情</a-button>
             </a-space>
           </template>
         </template>

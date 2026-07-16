@@ -23,6 +23,7 @@ const manuscriptStatusMap: Record<string, { label: string; color: string }> = {
 
 // 状态标签页
 const statusTabs = [
+  { key: 'register', label: '收稿登记' },
   { key: '', label: '全部' },
   { key: '0', label: '新收稿' },
   { key: '2', label: '审稿中' },
@@ -33,10 +34,44 @@ const statusTabs = [
   { key: '6', label: '已发表' },
   { key: '9', label: '归档查询' },
 ];
+
+/** 三级 leaf 路径 → 列表状态 tab */
+const pathTabMap: Record<string, string> = {
+  register: 'register',
+  new: '0',
+  reviewing: '2',
+  revised: '3',
+  resubmitted: '7',
+  adopted: '4',
+  rejected: '5',
+  published: '6',
+  search: '',
+  archived: '9',
+};
+
 const activeTab = ref('');
 
 const route = useRoute();
 const router = useRouter();
+
+function resolveTabFromRoute(): string {
+  const leaf = route.path.split('/').filter(Boolean).pop() ?? '';
+  return pathTabMap[leaf] ?? '';
+}
+
+/** tab 切换时跳转到对应三级菜单 path，保持侧栏高亮 */
+const tabPathMap: Record<string, string> = {
+  register: 'register',
+  '0': 'new',
+  '2': 'reviewing',
+  '3': 'revised',
+  '7': 'resubmitted',
+  '4': 'adopted',
+  '5': 'rejected',
+  '6': 'published',
+  '': 'search',
+  '9': 'archived',
+};
 
 const manuscriptTypeMap: Record<string, string> = {
   '1': '研究论文',
@@ -130,19 +165,18 @@ const revisionForm = reactive({ manuscriptId: 0, revisionContent: '' });
 
 // ---------- 生命周期 ----------
 onMounted(() => {
-  // 从路由 query 读取初始 tab
-  const tabFromRoute = route.query.tab as string;
-  if (tabFromRoute !== undefined) {
-    activeTab.value = tabFromRoute;
+  activeTab.value = resolveTabFromRoute();
+  if (Object.keys(route.query).length > 0) {
+    router.replace({ path: route.path });
   }
   loadTable();
 });
 
-// 监听路由 query 变化，同步 tab
+// 监听路由 path 变化（三级菜单切换），同步 tab
 watch(
-  () => route.query.tab,
-  (newTab) => {
-    const tab = (newTab as string) ?? '';
+  () => route.path,
+  () => {
+    const tab = resolveTabFromRoute();
     if (tab !== activeTab.value) {
       activeTab.value = tab;
       pagination.current = 1;
@@ -155,11 +189,11 @@ watch(
 function onTabChange(key: string) {
   activeTab.value = key;
   pagination.current = 1;
-  // 同步路由 query
-  if (key) {
-    router.push({ query: { tab: key } });
+  const leaf = tabPathMap[key];
+  if (leaf) {
+    router.push({ path: `/editor/manuscript/${leaf}` });
   } else {
-    router.push({ query: {} });
+    router.push({ path: '/editor/manuscript/search' });
   }
   loadTable();
 }
@@ -172,8 +206,8 @@ async function loadTable() {
       pageNum: pagination.current,
       pageSize: pagination.pageSize,
     };
-    // 标签页过滤：如果选中了状态标签，覆盖搜索表单的 status
-    if (activeTab.value) {
+    // 标签页过滤：选中状态标签时覆盖搜索表单的 status（收稿登记不做状态过滤）
+    if (activeTab.value && activeTab.value !== 'register') {
       params.status = activeTab.value;
     }
     const res = await editorApi.getManuscriptList(params);
@@ -357,15 +391,12 @@ function getTypeLabel(type: string | undefined) {
 
 <template>
   <div class="p-4">
-    <!-- 状态标签页 -->
+    <!-- 状态标签页 + 搜索区域 -->
     <a-card class="mb-4" size="small">
       <a-tabs v-model:activeKey="activeTab" @change="onTabChange">
         <a-tab-pane v-for="tab in statusTabs" :key="tab.key" :tab="tab.label" />
       </a-tabs>
-    </a-card>
-
-    <!-- 搜索区域 -->
-    <a-card class="mb-4" size="small">
+      <a-divider class="!my-3" />
       <a-form layout="inline">
         <a-form-item label="文件编号">
           <a-input v-model:value="searchForm.fileNo" placeholder="请输入" allow-clear style="width:150px" />

@@ -116,7 +116,7 @@ const logoSrc = computed(() => {
           <div class="text-1xl mt-6 font-sans text-foreground lg:text-2xl">
             {{ pageTitle }}
           </div>
-          <div class="mt-2 dark:text-muted-foreground">
+          <div class="mt-2">
             {{ pageDescription }}
           </div>
         </div>

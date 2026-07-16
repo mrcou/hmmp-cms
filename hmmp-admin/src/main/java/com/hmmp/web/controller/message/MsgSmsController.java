@@ -82,7 +82,29 @@ public class MsgSmsController extends BaseController
     public AjaxResult send(@RequestBody MsgSms sms)
     {
         sms.setSendBy(getUsername());
+        if (sms.getSmsProvider() != null && !sms.getSmsProvider().isEmpty())
+        {
+            return smsSendService.sendSms(sms, sms.getSmsProvider());
+        }
         return smsSendService.sendSms(sms);
+    }
+
+    /**
+     * 测试发送短信（可选阿里云/腾讯云/火山云）
+     */
+    @PreAuthorize("@ss.hasPermi('message:msg:test')")
+    @Log(title = "短信测试发送", businessType = BusinessType.INSERT)
+    @PostMapping("/test")
+    public AjaxResult test(@RequestBody MsgSms sms)
+    {
+        sms.setSendBy(getUsername());
+        String provider = sms.getSmsProvider();
+        if (provider == null || provider.isEmpty())
+        {
+            provider = "aliyun";
+            sms.setSmsProvider(provider);
+        }
+        return smsSendService.sendSms(sms, provider);
     }
 
     /**

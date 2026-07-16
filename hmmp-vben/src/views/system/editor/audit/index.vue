@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { EditorApi } from '#/api/biz/editor';
 
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import { message } from 'antdv-next';
 
@@ -9,11 +10,43 @@ import * as editorApi from '#/api/biz/editor';
 
 // ---------- 状态常量 ----------
 const auditStatusMap: Record<string, { label: string; color: string }> = {
-  '0': { label: '待审', color: 'orange' },
+  '0': { label: '未审回', color: 'orange' },
   '1': { label: '已审回', color: 'green' },
   '2': { label: '已撤审', color: 'red' },
   '3': { label: '已接受退审', color: 'blue' },
 };
+
+const statusTabs = [
+  { key: '0', label: '未审回' },
+  { key: '2', label: '已撤审' },
+  { key: '3', label: '已接受退审' },
+  { key: '1', label: '已审回' },
+];
+
+/** 三级 leaf 路径 → 审稿状态 */
+const pathTabMap: Record<string, string> = {
+  pending: '0',
+  withdrawn: '2',
+  'accept-withdraw': '3',
+  returned: '1',
+};
+
+const tabPathMap: Record<string, string> = {
+  '0': 'pending',
+  '2': 'withdrawn',
+  '3': 'accept-withdraw',
+  '1': 'returned',
+};
+
+const activeTab = ref('0');
+
+const route = useRoute();
+const router = useRouter();
+
+function resolveTabFromRoute(): string {
+  const leaf = route.path.split('/').filter(Boolean).pop() ?? '';
+  return pathTabMap[leaf] ?? '0';
+}
 
 // ---------- 查询参数 ----------
 const searchForm = reactive<EditorApi.AuditListParams>({
@@ -65,10 +98,36 @@ const formData = reactive<EditorApi.Audit>({
 
 // ---------- 生命周期 ----------
 onMounted(() => {
+  activeTab.value = resolveTabFromRoute();
+  if (Object.keys(route.query).length > 0) {
+    router.replace({ path: route.path });
+  }
   loadTable();
 });
 
+watch(
+  () => route.path,
+  () => {
+    const tab = resolveTabFromRoute();
+    if (tab !== activeTab.value) {
+      activeTab.value = tab;
+      pagination.current = 1;
+      loadTable();
+    }
+  },
+);
+
 // ---------- 方法 ----------
+function onTabChange(key: string) {
+  activeTab.value = key;
+  pagination.current = 1;
+  const leaf = tabPathMap[key];
+  if (leaf) {
+    router.push({ path: `/editor/audit/${leaf}` });
+  }
+  loadTable();
+}
+
 async function loadTable() {
   tableLoading.value = true;
   try {
@@ -77,6 +136,9 @@ async function loadTable() {
       pageNum: pagination.current,
       pageSize: pagination.pageSize,
     };
+    if (activeTab.value) {
+      params.auditStatus = activeTab.value;
+    }
     const res = await editorApi.getAuditList(params);
     const data = res.data ?? res;
     tableData.value = data.rows ?? data.list ?? [];
@@ -97,6 +159,7 @@ function onReset() {
   searchForm.manuscriptId = undefined;
   searchForm.reviewerId = undefined;
   searchForm.auditStatus = undefined;
+  activeTab.value = resolveTabFromRoute();
   pagination.current = 1;
   loadTable();
 }
@@ -156,6 +219,13 @@ function getStatusTag(status: string | undefined) {
 
 <template>
   <div class="p-4">
+    <!-- 状态标签页 -->
+    <a-card class="mb-4" size="small">
+      <a-tabs v-model:activeKey="activeTab" @change="onTabChange">
+        <a-tab-pane v-for="tab in statusTabs" :key="tab.key" :tab="tab.label" />
+      </a-tabs>
+    </a-card>
+
     <!-- 搜索区域 -->
     <a-card class="mb-4" size="small">
       <a-form layout="inline">

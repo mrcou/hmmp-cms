@@ -1,7 +1,8 @@
 import { defineOverridesPreferences } from '@vben/preferences';
 
 const hmmpAppPreferences = {
-  accessMode: 'mixed',
+  accessMode: 'frontend',
+  authPageLayout: 'panel-center',
   defaultHomePath: '/dashboard',
   name: import.meta.env.VITE_APP_TITLE,
 } as const;

@@ -7,6 +7,7 @@ import {
   Tag,
 } from 'antdv-next';
 import * as authorApi from '#/api/biz/author';
+import AuthorPageShell from '../_components/author-page-shell.vue';
 
 const loading = ref(false);
 const dataSource = ref<any[]>([]);
@@ -52,8 +53,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-4">
-    <Card title="最新消息">
+  <AuthorPageShell
+    title="最新消息"
+    description="系统、审稿与出版相关通知会汇总在这里。"
+  >
+    <Card :bordered="false" class="shadow-sm">
       <Table
         :columns="columns"
         :data-source="dataSource"
@@ -77,5 +81,5 @@ onMounted(() => {
         </template>
       </Table>
     </Card>
-  </div>
+  </AuthorPageShell>
 </template>

@@ -13,6 +13,7 @@ import {
 } from 'antdv-next';
 import type { UploadChangeParam } from 'antdv-next';
 import * as authorApi from '#/api/biz/author';
+import AuthorPageShell from '../_components/author-page-shell.vue';
 
 const formRef = ref();
 const loading = ref(false);
@@ -92,8 +93,11 @@ function onReset() {
 </script>
 
 <template>
-  <div class="p-4">
-    <Card title="提交新稿" class="max-w-3xl">
+  <AuthorPageShell
+    title="提交新稿"
+    description="填写稿件信息并上传正文文件，提交后可在「稿件查询」中跟踪进度。"
+  >
+    <Card :bordered="false" class="shadow-sm">
       <Form
         ref="formRef"
         :model="formState"
@@ -134,23 +138,22 @@ function onReset() {
             :max-count="1"
             @change="onUploadChange"
           >
-            <Button>
-              <template #icon>
-                <span>📎</span>
-              </template>
-              选择文件
-            </Button>
+            <Button>选择文件</Button>
           </Upload>
-          <span class="text-gray-400 ml-2">支持 PDF、DOC、DOCX 格式，单个文件不超过 10MB</span>
+          <span class="text-muted-foreground ml-2 text-sm">
+            支持 PDF、DOC、DOCX，单个文件不超过 10MB
+          </span>
         </FormItem>
 
         <FormItem :wrapper-col="{ offset: 4, span: 18 }">
           <Space>
-            <Button type="primary" :loading="loading" @click="onSubmit">提交投稿</Button>
+            <Button type="primary" :loading="loading" @click="onSubmit">
+              提交投稿
+            </Button>
             <Button @click="onReset">重置</Button>
           </Space>
         </FormItem>
       </Form>
     </Card>
-  </div>
+  </AuthorPageShell>
 </template>

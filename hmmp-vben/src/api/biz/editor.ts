@@ -1,3 +1,4 @@
+import { downloadExcel } from '#/api/core/download';
 import { requestClient } from '#/api/request';
 
 export namespace EditorApi {
@@ -35,6 +36,10 @@ export namespace EditorApi {
     pageStart?: number;
     pageEnd?: number;
     filePath?: string;
+    /** 栏目名称（扩展字段，后端就绪后可用） */
+    columnName?: string;
+    /** 加急程度（扩展字段，后端就绪后可用） */
+    urgency?: string;
     createBy?: string;
     createTime?: string;
     updateBy?: string;
@@ -226,6 +231,16 @@ export async function acceptManuscript(data: Partial<EditorApi.Manuscript>) {
 /** 退稿 */
 export async function rejectManuscript(data: Partial<EditorApi.Manuscript>) {
   return requestClient.put('/editor/manuscript/reject', data);
+}
+
+/** 修回确认 */
+export async function confirmRevision(data: Partial<EditorApi.Manuscript>) {
+  return requestClient.put('/editor/manuscript/revised', data);
+}
+
+/** 导出稿件列表 */
+export async function exportManuscriptList(params: EditorApi.ManuscriptListParams) {
+  return downloadExcel('/editor/manuscript/export', params as Record<string, any>, '稿件数据.xlsx');
 }
 
 /** 审稿记录列表 */

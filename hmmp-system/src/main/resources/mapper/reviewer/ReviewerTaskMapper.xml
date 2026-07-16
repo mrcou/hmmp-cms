@@ -16,14 +16,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="rejectReason"  column="reject_reason"   />
         <result property="deadlineTime"  column="deadline_time"   />
         <result property="submitTime"    column="submit_time"     />
-        <result property="createBy"      column="create_by"       />
         <result property="createTime"    column="create_time"     />
     </resultMap>
 
     <sql id="selectReviewerTaskVo">
         select task_id, audit_id, manuscript_id, reviewer_id, title, abstract,
                task_status, accept_time, reject_reason, deadline_time, submit_time,
-               create_by, create_time
+               create_time
         from reviewer_task
     </sql>
 
@@ -72,7 +71,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="rejectReason != null">reject_reason,</if>
             <if test="deadlineTime != null">deadline_time,</if>
             <if test="submitTime != null">submit_time,</if>
-            <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -86,7 +84,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="rejectReason != null">#{rejectReason},</if>
             <if test="deadlineTime != null">#{deadlineTime},</if>
             <if test="submitTime != null">#{submitTime},</if>
-            <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
         </trim>
     </insert>
