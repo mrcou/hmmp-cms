@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherCommentMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherComment" id="PublisherCommentResult">
+        <id     property="commentId"     column="comment_id"       />
+        <result property="articleId"     column="article_id"       />
+        <result property="userId"        column="user_id"          />
+        <result property="userName"      column="user_name"        />
+        <result property="content"       column="content"          />
+        <result property="auditStatus"   column="audit_status"     />
+        <result property="auditTime"     column="audit_time"       />
+        <result property="auditBy"       column="audit_by"         />
+        <result property="isTop"         column="is_top"           />
+        <result property="replyTo"       column="reply_to"         />
+        <result property="likeCount"     column="like_count"       />
+        <result property="status"        column="status"           />
+        <result property="createTime"    column="create_time"      />
+    </resultMap>
+
+    <sql id="selectPublisherCommentVo">
+        select comment_id, article_id, user_id, user_name, content, audit_status, audit_time, audit_by,
+               is_top, reply_to, like_count, status, create_time
+        from publisher_comment
+    </sql>
+
+    <select id="selectCommentList" parameterType="com.hmmp.system.domain.publisher.PublisherComment" resultMap="PublisherCommentResult">
+        <include refid="selectPublisherCommentVo"/>
+        <where>
+            <if test="articleId != null">AND article_id = #{articleId}</if>
+            <if test="userId != null">AND user_id = #{userId}</if>
+            <if test="auditStatus != null and auditStatus != ''">AND audit_status = #{auditStatus}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectCommentById" parameterType="Long" resultMap="PublisherCommentResult">
+        <include refid="selectPublisherCommentVo"/>
+        where comment_id = #{commentId}
+    </select>
+
+    <insert id="insertComment" parameterType="com.hmmp.system.domain.publisher.PublisherComment" useGeneratedKeys="true" keyProperty="commentId">
+        insert into publisher_comment (
+            article_id, user_id, user_name, content, audit_status, audit_time, audit_by,
+            is_top, reply_to, like_count, status, create_time
+        ) values (
+            #{articleId}, #{userId}, #{userName}, #{content}, #{auditStatus}, #{auditTime}, #{auditBy},
+            #{isTop}, #{replyTo}, #{likeCount}, #{status}, sysdate()
+        )
+    </insert>
+
+    <update id="updateComment" parameterType="com.hmmp.system.domain.publisher.PublisherComment">
+        update publisher_comment
+        <set>
+            <if test="content != null">content = #{content},</if>
+            <if test="isTop != null">is_top = #{isTop},</if>
+            <if test="likeCount != null">like_count = #{likeCount},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        where comment_id = #{commentId}
+    </update>
+
+    <update id="auditComment" parameterType="com.hmmp.system.domain.publisher.PublisherComment">
+        update publisher_comment set audit_status = #{auditStatus}, audit_time = sysdate(), audit_by = #{auditBy}
+        where comment_id = #{commentId}
+    </update>
+
+    <delete id="deleteCommentById" parameterType="Long">
+        delete from publisher_comment where comment_id = #{commentId}
+    </delete>
+
+    <delete id="deleteCommentByIds" parameterType="Long">
+        delete from publisher_comment where comment_id in
+        <foreach collection="array" item="commentId" open="(" separator="," close=")">
+            #{commentId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+﻿<script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { SystemRoleApi } from '#/api/system/role';
 
@@ -26,12 +26,12 @@ const router = useRouter();
 
 const [FormModal, formModalApi] = useVbenModal({
   connectedComponent: Form,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [DataScopeModal, dataScopeModalApi] = useVbenModal({
   connectedComponent: DataScope,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [Grid, gridApi] = useVbenVxeGrid({

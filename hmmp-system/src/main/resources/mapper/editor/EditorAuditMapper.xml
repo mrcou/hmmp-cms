@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.EditorAuditMapper">
+
+    <resultMap type="EditorAudit" id="EditorAuditResult">
+        <id     property="auditId"          column="audit_id"          />
+        <result property="manuscriptId"     column="manuscript_id"     />
+        <result property="reviewerId"       column="reviewer_id"       />
+        <result property="reviewerName"     column="reviewer_name"     />
+        <result property="reviewRound"      column="review_round"      />
+        <result property="auditStatus"      column="audit_status"      />
+        <result property="auditOpinion"     column="audit_opinion"     />
+        <result property="auditScore"       column="audit_score"       />
+        <result property="auditResult"      column="audit_result"      />
+        <result property="inviteTime"       column="invite_time"       />
+        <result property="deadlineTime"     column="deadline_time"     />
+        <result property="auditTime"        column="audit_time"        />
+        <result property="withdrawTime"     column="withdraw_time"     />
+        <result property="withdrawReason"   column="withdraw_reason"   />
+        <result property="acceptWithdrawTime" column="accept_withdraw_time" />
+        <result property="inviteMessage"    column="invite_message"    />
+        <result property="isDeleted"        column="is_deleted"        />
+        <result property="createBy"         column="create_by"         />
+        <result property="createTime"       column="create_time"       />
+        <result property="updateBy"         column="update_by"         />
+        <result property="updateTime"       column="update_time"       />
+    </resultMap>
+
+    <sql id="selectEditorAuditVo">
+        select audit_id, manuscript_id, reviewer_id, reviewer_name, review_round, audit_status,
+               audit_opinion, audit_score, audit_result, invite_time, deadline_time, audit_time,
+               withdraw_time, withdraw_reason, accept_withdraw_time, invite_message, is_deleted,
+               create_by, create_time, update_by, update_time
+        from editor_audit
+    </sql>
+
+    <select id="selectAuditList" parameterType="EditorAudit" resultMap="EditorAuditResult">
+        <include refid="selectEditorAuditVo"/>
+        <where>
+            <if test="manuscriptId != null">AND manuscript_id = #{manuscriptId}</if>
+            <if test="reviewerId != null">AND reviewer_id = #{reviewerId}</if>
+            <if test="auditStatus != null and auditStatus != ''">AND audit_status = #{auditStatus}</if>
+            <if test="reviewRound != null">AND review_round = #{reviewRound}</if>
+            <if test="isDeleted != null and isDeleted != ''">AND is_deleted = #{isDeleted}</if>
+        </where>
+        order by review_round, invite_time desc
+    </select>
+
+    <select id="selectAuditById" parameterType="Long" resultMap="EditorAuditResult">
+        <include refid="selectEditorAuditVo"/>
+        where audit_id = #{auditId}
+    </select>
+
+    <select id="selectAuditByManuscriptId" parameterType="Long" resultMap="EditorAuditResult">
+        <include refid="selectEditorAuditVo"/>
+        where manuscript_id = #{manuscriptId} order by review_round
+    </select>
+
+    <select id="selectAuditByReviewerId" parameterType="Long" resultMap="EditorAuditResult">
+        <include refid="selectEditorAuditVo"/>
+        where reviewer_id = #{reviewerId} order by invite_time desc
+    </select>
+
+    <insert id="insertAudit" parameterType="EditorAudit" useGeneratedKeys="true" keyProperty="auditId">
+        insert into editor_audit (
+            manuscript_id, reviewer_id, reviewer_name, review_round, audit_status,
+            audit_opinion, audit_score, audit_result, invite_time, deadline_time, audit_time,
+            withdraw_time, withdraw_reason, accept_withdraw_time, invite_message, is_deleted,
+            create_by, create_time, update_by, update_time
+        ) values (
+            #{manuscriptId}, #{reviewerId}, #{reviewerName}, #{reviewRound}, #{auditStatus},
+            #{auditOpinion}, #{auditScore}, #{auditResult}, #{inviteTime}, #{deadlineTime}, #{auditTime},
+            #{withdrawTime}, #{withdrawReason}, #{acceptWithdrawTime}, #{inviteMessage}, #{isDeleted},
+            #{createBy}, sysdate(), #{updateBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateAudit" parameterType="EditorAudit">
+        update editor_audit
+        <set>
+            <if test="auditStatus != null">audit_status = #{auditStatus},</if>
+            <if test="auditOpinion != null">audit_opinion = #{auditOpinion},</if>
+            <if test="auditScore != null">audit_score = #{auditScore},</if>
+            <if test="auditResult != null">audit_result = #{auditResult},</if>
+            <if test="inviteTime != null">invite_time = #{inviteTime},</if>
+            <if test="deadlineTime != null">deadline_time = #{deadlineTime},</if>
+            <if test="auditTime != null">audit_time = #{auditTime},</if>
+            <if test="withdrawTime != null">withdraw_time = #{withdrawTime},</if>
+            <if test="withdrawReason != null">withdraw_reason = #{withdrawReason},</if>
+            <if test="acceptWithdrawTime != null">accept_withdraw_time = #{acceptWithdrawTime},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            update_by = #{updateBy},
+            update_time = sysdate()
+        </set>
+        where audit_id = #{auditId}
+    </update>
+
+    <update id="updateAuditStatus" parameterType="EditorAudit">
+        update editor_audit set audit_status = #{auditStatus}, update_by = #{updateBy}, update_time = sysdate()
+        where audit_id = #{auditId}
+    </update>
+
+    <delete id="deleteAuditById" parameterType="Long">
+        update editor_audit set is_deleted = '2' where audit_id = #{auditId}
+    </delete>
+
+    <delete id="deleteAuditByIds" parameterType="Long">
+        update editor_audit set is_deleted = '2' where audit_id in
+        <foreach collection="array" item="auditId" open="(" separator="," close=")">
+            #{auditId}
+        </foreach>
+    </delete>
+
+</mapper>

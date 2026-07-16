@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+﻿<script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { MonitorOperlogApi } from '#/api/monitor/operlog';
 
@@ -22,7 +22,7 @@ import Detail from './modules/detail.vue';
 
 const [DetailModal, detailModalApi] = useVbenModal({
   connectedComponent: Detail,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [Grid, gridApi] = useVbenVxeGrid({

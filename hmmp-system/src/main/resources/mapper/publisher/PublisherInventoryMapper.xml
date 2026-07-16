@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherInventoryMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherInventory" id="PublisherInventoryResult">
+        <id     property="inventoryId"    column="inventory_id"      />
+        <result property="issueId"        column="issue_id"          />
+        <result property="year"           column="year"              />
+        <result property="period"         column="period"            />
+        <result property="stockQty"       column="stock_qty"         />
+        <result property="soldQty"        column="sold_qty"          />
+        <result property="allocatedQty"   column="allocated_qty"     />
+        <result property="warehouse"      column="warehouse"         />
+        <result property="location"       column="location"          />
+        <result property="createTime"     column="create_time"       />
+        <result property="updateTime"     column="update_time"       />
+    </resultMap>
+
+    <sql id="selectPublisherInventoryVo">
+        select inventory_id, issue_id, year, period, stock_qty, sold_qty, allocated_qty,
+               warehouse, location, create_time, update_time
+        from publisher_inventory
+    </sql>
+
+    <select id="selectInventoryList" parameterType="com.hmmp.system.domain.publisher.PublisherInventory" resultMap="PublisherInventoryResult">
+        <include refid="selectPublisherInventoryVo"/>
+        <where>
+            <if test="issueId != null">AND issue_id = #{issueId}</if>
+            <if test="year != null">AND year = #{year}</if>
+            <if test="period != null">AND period = #{period}</if>
+            <if test="warehouse != null and warehouse != ''">AND warehouse like concat('%', #{warehouse}, '%')</if>
+        </where>
+        order by year desc, period desc
+    </select>
+
+    <select id="selectInventoryById" parameterType="Long" resultMap="PublisherInventoryResult">
+        <include refid="selectPublisherInventoryVo"/>
+        where inventory_id = #{inventoryId}
+    </select>
+
+    <select id="selectInventoryByIssueId" parameterType="Long" resultMap="PublisherInventoryResult">
+        <include refid="selectPublisherInventoryVo"/>
+        where issue_id = #{issueId}
+    </select>
+
+    <insert id="insertInventory" parameterType="com.hmmp.system.domain.publisher.PublisherInventory" useGeneratedKeys="true" keyProperty="inventoryId">
+        insert into publisher_inventory (
+            issue_id, year, period, stock_qty, sold_qty, allocated_qty,
+            warehouse, location, create_time, update_time
+        ) values (
+            #{issueId}, #{year}, #{period}, #{stockQty}, #{soldQty}, #{allocatedQty},
+            #{warehouse}, #{location}, sysdate(), sysdate()
+        )
+    </insert>
+
+    <update id="updateInventory" parameterType="com.hmmp.system.domain.publisher.PublisherInventory">
+        update publisher_inventory
+        <set>
+            <if test="issueId != null">issue_id = #{issueId},</if>
+            <if test="year != null">year = #{year},</if>
+            <if test="period != null">period = #{period},</if>
+            <if test="stockQty != null">stock_qty = #{stockQty},</if>
+            <if test="soldQty != null">sold_qty = #{soldQty},</if>
+            <if test="allocatedQty != null">allocated_qty = #{allocatedQty},</if>
+            <if test="warehouse != null">warehouse = #{warehouse},</if>
+            <if test="location != null">location = #{location},</if>
+            update_time = sysdate()
+        </set>
+        where inventory_id = #{inventoryId}
+    </update>
+
+    <delete id="deleteInventoryById" parameterType="Long">
+        delete from publisher_inventory where inventory_id = #{inventoryId}
+    </delete>
+
+    <delete id="deleteInventoryByIds" parameterType="Long">
+        delete from publisher_inventory where inventory_id in
+        <foreach collection="array" item="inventoryId" open="(" separator="," close=")">
+            #{inventoryId}
+        </foreach>
+    </delete>
+
+</mapper>

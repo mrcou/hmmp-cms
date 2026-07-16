@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherOrderMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherOrder" id="PublisherOrderResult">
+        <id     property="orderId"          column="order_id"           />
+        <result property="orderNo"          column="order_no"           />
+        <result property="subscriberId"     column="subscriber_id"      />
+        <result property="orderType"        column="order_type"         />
+        <result property="totalAmount"      column="total_amount"       />
+        <result property="paidAmount"       column="paid_amount"        />
+        <result property="payStatus"        column="pay_status"         />
+        <result property="payTime"          column="pay_time"           />
+        <result property="payMethod"        column="pay_method"         />
+        <result property="orderStatus"      column="order_status"       />
+        <result property="shippingName"     column="shipping_name"      />
+        <result property="shippingPhone"    column="shipping_phone"     />
+        <result property="shippingAddress"  column="shipping_address"   />
+        <result property="shippingZipCode"  column="shipping_zip_code"  />
+        <result property="trackingNo"       column="tracking_no"        />
+        <result property="shippingTime"     column="shipping_time"      />
+        <result property="completeTime"     column="complete_time"      />
+        <result property="createBy"         column="create_by"          />
+        <result property="createTime"       column="create_time"        />
+        <result property="updateBy"         column="update_by"          />
+        <result property="updateTime"       column="update_time"        />
+        <result property="remark"           column="remark"             />
+    </resultMap>
+
+    <sql id="selectPublisherOrderVo">
+        select order_id, order_no, subscriber_id, order_type, total_amount, paid_amount, pay_status, pay_time, pay_method,
+               order_status, shipping_name, shipping_phone, shipping_address, shipping_zip_code, tracking_no, shipping_time, complete_time,
+               create_by, create_time, update_by, update_time, remark
+        from publisher_order
+    </sql>
+
+    <select id="selectOrderList" parameterType="com.hmmp.system.domain.publisher.PublisherOrder" resultMap="PublisherOrderResult">
+        <include refid="selectPublisherOrderVo"/>
+        <where>
+            <if test="orderNo != null and orderNo != ''">AND order_no like concat('%', #{orderNo}, '%')</if>
+            <if test="subscriberId != null">AND subscriber_id = #{subscriberId}</if>
+            <if test="orderType != null and orderType != ''">AND order_type = #{orderType}</if>
+            <if test="payStatus != null and payStatus != ''">AND pay_status = #{payStatus}</if>
+            <if test="orderStatus != null and orderStatus != ''">AND order_status = #{orderStatus}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectOrderById" parameterType="Long" resultMap="PublisherOrderResult">
+        <include refid="selectPublisherOrderVo"/>
+        where order_id = #{orderId}
+    </select>
+
+    <select id="selectOrderByOrderNo" parameterType="String" resultMap="PublisherOrderResult">
+        <include refid="selectPublisherOrderVo"/>
+        where order_no = #{orderNo}
+    </select>
+
+    <insert id="insertOrder" parameterType="com.hmmp.system.domain.publisher.PublisherOrder" useGeneratedKeys="true" keyProperty="orderId">
+        insert into publisher_order (
+            order_no, subscriber_id, order_type, total_amount, paid_amount, pay_status, pay_time, pay_method,
+            order_status, shipping_name, shipping_phone, shipping_address, shipping_zip_code, tracking_no, shipping_time, complete_time,
+            create_by, create_time, update_by, update_time, remark
+        ) values (
+            #{orderNo}, #{subscriberId}, #{orderType}, #{totalAmount}, #{paidAmount}, #{payStatus}, #{payTime}, #{payMethod},
+            #{orderStatus}, #{shippingName}, #{shippingPhone}, #{shippingAddress}, #{shippingZipCode}, #{trackingNo}, #{shippingTime}, #{completeTime},
+            #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark}
+        )
+    </insert>
+
+    <update id="updateOrder" parameterType="com.hmmp.system.domain.publisher.PublisherOrder">
+        update publisher_order
+        <set>
+            <if test="orderNo != null">order_no = #{orderNo},</if>
+            <if test="subscriberId != null">subscriber_id = #{subscriberId},</if>
+            <if test="orderType != null">order_type = #{orderType},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="paidAmount != null">paid_amount = #{paidAmount},</if>
+            <if test="orderStatus != null">order_status = #{orderStatus},</if>
+            <if test="shippingName != null">shipping_name = #{shippingName},</if>
+            <if test="shippingPhone != null">shipping_phone = #{shippingPhone},</if>
+            <if test="shippingAddress != null">shipping_address = #{shippingAddress},</if>
+            <if test="shippingZipCode != null">shipping_zip_code = #{shippingZipCode},</if>
+            <if test="trackingNo != null">tracking_no = #{trackingNo},</if>
+            <if test="shippingTime != null">shipping_time = #{shippingTime},</if>
+            <if test="completeTime != null">complete_time = #{completeTime},</if>
+            update_by = #{updateBy},
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        where order_id = #{orderId}
+    </update>
+
+    <update id="updateOrderPayStatus" parameterType="com.hmmp.system.domain.publisher.PublisherOrder">
+        update publisher_order set pay_status = #{payStatus}, paid_amount = #{paidAmount}, pay_time = #{payTime}, pay_method = #{payMethod},
+        update_by = #{updateBy}, update_time = sysdate()
+        where order_id = #{orderId}
+    </update>
+
+    <update id="updateOrderShipStatus" parameterType="com.hmmp.system.domain.publisher.PublisherOrder">
+        update publisher_order set order_status = #{orderStatus}, tracking_no = #{trackingNo}, shipping_time = #{shippingTime},
+        update_by = #{updateBy}, update_time = sysdate()
+        where order_id = #{orderId}
+    </update>
+
+    <delete id="deleteOrderById" parameterType="Long">
+        delete from publisher_order where order_id = #{orderId}
+    </delete>
+
+    <delete id="deleteOrderByIds" parameterType="Long">
+        delete from publisher_order where order_id in
+        <foreach collection="array" item="orderId" open="(" separator="," close=")">
+            #{orderId}
+        </foreach>
+    </delete>
+
+</mapper>

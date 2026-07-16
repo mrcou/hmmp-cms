@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.EditorReviewerMapper">
+
+    <resultMap type="EditorReviewer" id="EditorReviewerResult">
+        <id     property="reviewerId"       column="reviewer_id"         />
+        <result property="userId"           column="user_id"             />
+        <result property="realName"         column="real_name"           />
+        <result property="gender"           column="gender"              />
+        <result property="birthday"         column="birthday"            />
+        <result property="affiliation"      column="affiliation"         />
+        <result property="department"       column="department"          />
+        <result property="title"            column="title"               />
+        <result property="academicDegree"   column="academic_degree"     />
+        <result property="researchDirection" column="research_direction" />
+        <result property="expertiseFields"  column="expertise_fields"    />
+        <result property="email"            column="email"               />
+        <result property="phone"            column="phone"               />
+        <result property="mobile"           column="mobile"              />
+        <result property="address"          column="address"             />
+        <result property="zipCode"          column="zip_code"            />
+        <result property="idCard"           column="id_card"             />
+        <result property="workNo"           column="work_no"             />
+        <result property="reviewCount"      column="review_count"        />
+        <result property="acceptRate"       column="accept_rate"         />
+        <result property="avgReviewDays"    column="avg_review_days"     />
+        <result property="reviewScoreAvg"   column="review_score_avg"    />
+        <result property="status"           column="status"              />
+        <result property="isDeleted"        column="is_deleted"          />
+        <result property="deleteTime"       column="delete_time"         />
+        <result property="createBy"         column="create_by"           />
+        <result property="createTime"       column="create_time"         />
+        <result property="updateBy"         column="update_by"           />
+        <result property="updateTime"       column="update_time"         />
+        <result property="remark"           column="remark"              />
+    </resultMap>
+
+    <sql id="selectEditorReviewerVo">
+        select reviewer_id, user_id, real_name, gender, birthday, affiliation,
+               department, title, academic_degree, research_direction, expertise_fields,
+               email, phone, mobile, address, zip_code, id_card, work_no,
+               review_count, accept_rate, avg_review_days, review_score_avg,
+               status, is_deleted, delete_time,
+               create_by, create_time, update_by, update_time, remark
+        from editor_reviewer
+    </sql>
+
+    <select id="selectReviewerList" parameterType="EditorReviewer" resultMap="EditorReviewerResult">
+        <include refid="selectEditorReviewerVo"/>
+        <where>
+            <if test="realName != null and realName != ''">AND real_name like concat('%', #{realName}, '%')</if>
+            <if test="email != null and email != ''">AND email like concat('%', #{email}, '%')</if>
+            <if test="affiliation != null and affiliation != ''">AND affiliation like concat('%', #{affiliation}, '%')</if>
+            <if test="expertiseFields != null and expertiseFields != ''">AND expertise_fields like concat('%', #{expertiseFields}, '%')</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+            <if test="isDeleted != null and isDeleted != ''">AND is_deleted = #{isDeleted}</if>
+        </where>
+        order by review_count desc, create_time desc
+    </select>
+
+    <select id="selectReviewerById" parameterType="Long" resultMap="EditorReviewerResult">
+        <include refid="selectEditorReviewerVo"/>
+        where reviewer_id = #{reviewerId}
+    </select>
+
+    <select id="selectReviewerByUserId" parameterType="Long" resultMap="EditorReviewerResult">
+        <include refid="selectEditorReviewerVo"/>
+        where user_id = #{userId}
+    </select>
+
+    <select id="selectReviewerByEmail" parameterType="String" resultMap="EditorReviewerResult">
+        <include refid="selectEditorReviewerVo"/>
+        where email = #{email}
+    </select>
+
+    <insert id="insertReviewer" parameterType="EditorReviewer" useGeneratedKeys="true" keyProperty="reviewerId">
+        insert into editor_reviewer (
+            user_id, real_name, gender, birthday, affiliation,
+            department, title, academic_degree, research_direction, expertise_fields,
+            email, phone, mobile, address, zip_code, id_card, work_no,
+            review_count, accept_rate, avg_review_days, review_score_avg,
+            status, is_deleted, delete_time,
+            create_by, create_time, update_by, update_time, remark
+        ) values (
+            #{userId}, #{realName}, #{gender}, #{birthday}, #{affiliation},
+            #{department}, #{title}, #{academicDegree}, #{researchDirection}, #{expertiseFields},
+            #{email}, #{phone}, #{mobile}, #{address}, #{zipCode}, #{idCard}, #{workNo},
+            #{reviewCount}, #{acceptRate}, #{avgReviewDays}, #{reviewScoreAvg},
+            #{status}, #{isDeleted}, #{deleteTime},
+            #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark}
+        )
+    </insert>
+
+    <update id="updateReviewer" parameterType="EditorReviewer">
+        update editor_reviewer
+        <set>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="birthday != null">birthday = #{birthday},</if>
+            <if test="affiliation != null">affiliation = #{affiliation},</if>
+            <if test="department != null">department = #{department},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="academicDegree != null">academic_degree = #{academicDegree},</if>
+            <if test="researchDirection != null">research_direction = #{researchDirection},</if>
+            <if test="expertiseFields != null">expertise_fields = #{expertiseFields},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="mobile != null">mobile = #{mobile},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="zipCode != null">zip_code = #{zipCode},</if>
+            <if test="idCard != null">id_card = #{idCard},</if>
+            <if test="workNo != null">work_no = #{workNo},</if>
+            <if test="reviewCount != null">review_count = #{reviewCount},</if>
+            <if test="acceptRate != null">accept_rate = #{acceptRate},</if>
+            <if test="avgReviewDays != null">avg_review_days = #{avgReviewDays},</if>
+            <if test="reviewScoreAvg != null">review_score_avg = #{reviewScoreAvg},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="deleteTime != null">delete_time = #{deleteTime},</if>
+            update_by = #{updateBy},
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        where reviewer_id = #{reviewerId}
+    </update>
+
+    <update id="updateReviewerStatus" parameterType="EditorReviewer">
+        update editor_reviewer set status = #{status}, update_by = #{updateBy}, update_time = sysdate()
+        where reviewer_id = #{reviewerId}
+    </update>
+
+    <delete id="deleteReviewerById" parameterType="Long">
+        update editor_reviewer set is_deleted = '2', delete_time = sysdate() where reviewer_id = #{reviewerId}
+    </delete>
+
+    <delete id="deleteReviewerByIds" parameterType="Long">
+        update editor_reviewer set is_deleted = '2', delete_time = sysdate() where reviewer_id in
+        <foreach collection="array" item="reviewerId" open="(" separator="," close=")">
+            #{reviewerId}
+        </foreach>
+    </delete>
+
+</mapper>

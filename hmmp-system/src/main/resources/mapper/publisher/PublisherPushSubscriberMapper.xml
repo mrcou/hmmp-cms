@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherPushSubscriberMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherPushSubscriber" id="PublisherPushSubscriberResult">
+        <id     property="subId"        column="sub_id"           />
+        <result property="readerId"     column="reader_id"        />
+        <result property="pushType"     column="push_type"        />
+        <result property="keywords"     column="keywords"         />
+        <result property="columnIds"    column="column_ids"       />
+        <result property="status"       column="status"           />
+        <result property="createTime"   column="create_time"      />
+        <result property="updateTime"   column="update_time"      />
+    </resultMap>
+
+    <sql id="selectPublisherPushSubscriberVo">
+        select sub_id, reader_id, push_type, keywords, column_ids, status, create_time, update_time
+        from publisher_push_subscriber
+    </sql>
+
+    <select id="selectPushSubscriberList" parameterType="com.hmmp.system.domain.publisher.PublisherPushSubscriber" resultMap="PublisherPushSubscriberResult">
+        <include refid="selectPublisherPushSubscriberVo"/>
+        <where>
+            <if test="readerId != null">AND reader_id = #{readerId}</if>
+            <if test="pushType != null and pushType != ''">AND push_type = #{pushType}</if>
+            <if test="keywords != null and keywords != ''">AND keywords like concat('%', #{keywords}, '%')</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectPushSubscriberById" parameterType="Long" resultMap="PublisherPushSubscriberResult">
+        <include refid="selectPublisherPushSubscriberVo"/>
+        where sub_id = #{subId}
+    </select>
+
+    <insert id="insertPushSubscriber" parameterType="com.hmmp.system.domain.publisher.PublisherPushSubscriber" useGeneratedKeys="true" keyProperty="subId">
+        insert into publisher_push_subscriber (
+            reader_id, push_type, keywords, column_ids, status, create_time, update_time
+        ) values (
+            #{readerId}, #{pushType}, #{keywords}, #{columnIds}, #{status}, sysdate(), sysdate()
+        )
+    </insert>
+
+    <update id="updatePushSubscriber" parameterType="com.hmmp.system.domain.publisher.PublisherPushSubscriber">
+        update publisher_push_subscriber
+        <set>
+            <if test="readerId != null">reader_id = #{readerId},</if>
+            <if test="pushType != null">push_type = #{pushType},</if>
+            <if test="keywords != null">keywords = #{keywords},</if>
+            <if test="columnIds != null">column_ids = #{columnIds},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = sysdate()
+        </set>
+        where sub_id = #{subId}
+    </update>
+
+    <delete id="deletePushSubscriberById" parameterType="Long">
+        delete from publisher_push_subscriber where sub_id = #{subId}
+    </delete>
+
+    <delete id="deletePushSubscriberByIds" parameterType="Long">
+        delete from publisher_push_subscriber where sub_id in
+        <foreach collection="array" item="subId" open="(" separator="," close=")">
+            #{subId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.EditorManuscriptMapper">
+
+    <resultMap type="EditorManuscript" id="EditorManuscriptResult">
+        <id     property="manuscriptId"        column="manuscript_id"        />
+        <result property="fileNo"              column="file_no"             />
+        <result property="title"               column="title"               />
+        <result property="authorIds"           column="author_ids"          />
+        <result property="authorNames"         column="author_names"        />
+        <result property="correspondingAuthor" column="corresponding_author"/>
+        <result property="correspondingEmail"  column="corresponding_email" />
+        <result property="abstractText"        column="abstract"             />
+        <result property="keywords"            column="keywords"            />
+        <result property="manuscriptType"      column="manuscript_type"     />
+        <result property="wordCount"           column="word_count"          />
+        <result property="fundProject"         column="fund_project"        />
+        <result property="fundNo"              column="fund_no"             />
+        <result property="status"              column="status"              />
+        <result property="receiveTime"         column="receive_time"        />
+        <result property="assignTime"          column="assign_time"         />
+        <result property="reviewStartTime"     column="review_start_time"   />
+        <result property="reviewEndTime"       column="review_end_time"     />
+        <result property="conclusion"          column="conclusion"          />
+        <result property="conclusionTime"      column="conclusion_time"     />
+        <result property="editorId"            column="editor_id"           />
+        <result property="editorName"          column="editor_name"         />
+        <result property="auditCount"          column="audit_count"         />
+        <result property="revisionCount"       column="revision_count"      />
+        <result property="isDeleted"           column="is_deleted"          />
+        <result property="deleteTime"          column="delete_time"         />
+        <result property="deleteBy"            column="delete_by"           />
+        <result property="archiveTime"         column="archive_time"        />
+        <result property="publishTime"         column="publish_time"        />
+        <result property="issueId"             column="issue_id"            />
+        <result property="pageStart"           column="page_start"          />
+        <result property="pageEnd"             column="page_end"            />
+        <result property="filePath"            column="file_path"           />
+        <result property="createBy"            column="create_by"           />
+        <result property="createTime"          column="create_time"         />
+        <result property="updateBy"            column="update_by"           />
+        <result property="updateTime"          column="update_time"         />
+        <result property="remark"              column="remark"              />
+    </resultMap>
+
+    <sql id="selectEditorManuscriptVo">
+        select manuscript_id, file_no, title, author_ids, author_names, corresponding_author, corresponding_email,
+               abstract, keywords, manuscript_type, word_count, fund_project, fund_no, status,
+               receive_time, assign_time, review_start_time, review_end_time, conclusion, conclusion_time,
+               editor_id, editor_name, audit_count, revision_count, is_deleted, delete_time, delete_by,
+               archive_time, publish_time, issue_id, page_start, page_end, file_path,
+               create_by, create_time, update_by, update_time, remark
+        from editor_manuscript
+    </sql>
+
+    <select id="selectManuscriptList" parameterType="EditorManuscript" resultMap="EditorManuscriptResult">
+        <include refid="selectEditorManuscriptVo"/>
+        <where>
+            <if test="fileNo != null and fileNo != ''">
+                AND file_no like concat('%', #{fileNo}, '%')
+            </if>
+            <if test="title != null and title != ''">
+                AND title like concat('%', #{title}, '%')
+            </if>
+            <if test="authorNames != null and authorNames != ''">
+                AND author_names like concat('%', #{authorNames}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="manuscriptType != null and manuscriptType != ''">
+                AND manuscript_type = #{manuscriptType}
+            </if>
+            <if test="editorId != null">
+                AND editor_id = #{editorId}
+            </if>
+            <if test="isDeleted != null and isDeleted != ''">
+                AND is_deleted = #{isDeleted}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND date_format(receive_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND date_format(receive_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by receive_time desc
+    </select>
+
+    <select id="selectManuscriptById" parameterType="Long" resultMap="EditorManuscriptResult">
+        <include refid="selectEditorManuscriptVo"/>
+        where manuscript_id = #{manuscriptId}
+    </select>
+
+    <select id="selectManuscriptByFileNo" parameterType="String" resultMap="EditorManuscriptResult">
+        <include refid="selectEditorManuscriptVo"/>
+        where file_no = #{fileNo}
+    </select>
+
+    <insert id="insertManuscript" parameterType="EditorManuscript" useGeneratedKeys="true" keyProperty="manuscriptId">
+        insert into editor_manuscript (
+            file_no, title, author_ids, author_names, corresponding_author, corresponding_email,
+            abstract, keywords, manuscript_type, word_count, fund_project, fund_no, status,
+            receive_time, assign_time, review_start_time, review_end_time, conclusion, conclusion_time,
+            editor_id, editor_name, audit_count, revision_count, is_deleted, delete_time, delete_by,
+            archive_time, publish_time, issue_id, page_start, page_end, file_path,
+            create_by, create_time, update_by, update_time, remark
+        ) values (
+            #{fileNo}, #{title}, #{authorIds}, #{authorNames}, #{correspondingAuthor}, #{correspondingEmail},
+            #{abstractText}, #{keywords}, #{manuscriptType}, #{wordCount}, #{fundProject}, #{fundNo}, #{status},
+            #{receiveTime}, #{assignTime}, #{reviewStartTime}, #{reviewEndTime}, #{conclusion}, #{conclusionTime},
+            #{editorId}, #{editorName}, #{auditCount}, #{revisionCount}, #{isDeleted}, #{deleteTime}, #{deleteBy},
+            #{archiveTime}, #{publishTime}, #{issueId}, #{pageStart}, #{pageEnd}, #{filePath},
+            #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark}
+        )
+    </insert>
+
+    <update id="updateManuscript" parameterType="EditorManuscript">
+        update editor_manuscript
+        <set>
+            <if test="fileNo != null">file_no = #{fileNo},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="authorIds != null">author_ids = #{authorIds},</if>
+            <if test="authorNames != null">author_names = #{authorNames},</if>
+            <if test="correspondingAuthor != null">corresponding_author = #{correspondingAuthor},</if>
+            <if test="correspondingEmail != null">corresponding_email = #{correspondingEmail},</if>
+            <if test="abstractText != null">abstract = #{abstractText},</if>
+            <if test="keywords != null">keywords = #{keywords},</if>
+            <if test="manuscriptType != null">manuscript_type = #{manuscriptType},</if>
+            <if test="wordCount != null">word_count = #{wordCount},</if>
+            <if test="fundProject != null">fund_project = #{fundProject},</if>
+            <if test="fundNo != null">fund_no = #{fundNo},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="receiveTime != null">receive_time = #{receiveTime},</if>
+            <if test="assignTime != null">assign_time = #{assignTime},</if>
+            <if test="reviewStartTime != null">review_start_time = #{reviewStartTime},</if>
+            <if test="reviewEndTime != null">review_end_time = #{reviewEndTime},</if>
+            <if test="conclusion != null">conclusion = #{conclusion},</if>
+            <if test="conclusionTime != null">conclusion_time = #{conclusionTime},</if>
+            <if test="editorId != null">editor_id = #{editorId},</if>
+            <if test="editorName != null">editor_name = #{editorName},</if>
+            <if test="auditCount != null">audit_count = #{auditCount},</if>
+            <if test="revisionCount != null">revision_count = #{revisionCount},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="deleteTime != null">delete_time = #{deleteTime},</if>
+            <if test="deleteBy != null">delete_by = #{deleteBy},</if>
+            <if test="archiveTime != null">archive_time = #{archiveTime},</if>
+            <if test="publishTime != null">publish_time = #{publishTime},</if>
+            <if test="issueId != null">issue_id = #{issueId},</if>
+            <if test="pageStart != null">page_start = #{pageStart},</if>
+            <if test="pageEnd != null">page_end = #{pageEnd},</if>
+            <if test="filePath != null">file_path = #{filePath},</if>
+            update_by = #{updateBy},
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        where manuscript_id = #{manuscriptId}
+    </update>
+
+    <update id="updateManuscriptStatus" parameterType="EditorManuscript">
+        update editor_manuscript set status = #{status}, update_by = #{updateBy}, update_time = sysdate()
+        where manuscript_id = #{manuscriptId}
+    </update>
+
+    <delete id="deleteManuscriptById" parameterType="Long">
+        update editor_manuscript set is_deleted = '2', delete_time = sysdate() where manuscript_id = #{manuscriptId}
+    </delete>
+
+    <delete id="deleteManuscriptByIds" parameterType="Long">
+        update editor_manuscript set is_deleted = '2', delete_time = sysdate() where manuscript_id in
+        <foreach collection="array" item="manuscriptId" open="(" separator="," close=")">
+            #{manuscriptId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+﻿<script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { GenApi } from '#/api/tool/gen';
 
@@ -29,12 +29,12 @@ const router = useRouter();
 
 const [ImportModal, importModalApi] = useVbenModal({
   connectedComponent: GenImport,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [PreviewModal, previewModalApi] = useVbenModal({
   connectedComponent: Preview,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [Grid, gridApi] = useVbenVxeGrid({

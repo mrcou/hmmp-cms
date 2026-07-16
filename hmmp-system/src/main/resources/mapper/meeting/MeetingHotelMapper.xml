@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.meeting.MeetingHotelMapper">
+
+    <resultMap type="MeetingHotel" id="MeetingHotelResult">
+        <id     property="hotelId"      column="hotel_id"      />
+        <result property="meetingId"    column="meeting_id"    />
+        <result property="hotelName"    column="hotel_name"    />
+        <result property="address"      column="address"       />
+        <result property="phone"        column="phone"         />
+        <result property="starLevel"    column="star_level"    />
+        <result property="description"  column="description"   />
+        <result property="status"       column="status"        />
+        <result property="createTime"   column="create_time"   />
+        <result property="updateTime"   column="update_time"   />
+    </resultMap>
+
+    <sql id="selectHotelVo">
+        select hotel_id, meeting_id, hotel_name, address, phone, star_level, description, status, create_time, update_time
+        from meeting_hotel
+    </sql>
+
+    <select id="selectHotelList" parameterType="MeetingHotel" resultMap="MeetingHotelResult">
+        <include refid="selectHotelVo"/>
+        <where>
+            <if test="meetingId != null">AND meeting_id = #{meetingId}</if>
+            <if test="hotelName != null and hotelName != ''">AND hotel_name like concat('%', #{hotelName}, '%')</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectHotelById" parameterType="Long" resultMap="MeetingHotelResult">
+        <include refid="selectHotelVo"/>
+        where hotel_id = #{hotelId}
+    </select>
+
+    <insert id="insertHotel" parameterType="MeetingHotel" useGeneratedKeys="true" keyProperty="hotelId">
+        insert into meeting_hotel(
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="hotelName != null and hotelName != ''">hotel_name,</if>
+            <if test="address != null">address,</if>
+            <if test="phone != null">phone,</if>
+            <if test="starLevel != null">star_level,</if>
+            <if test="description != null">description,</if>
+            <if test="status != null">status,</if>
+            create_time
+        )values(
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="hotelName != null and hotelName != ''">#{hotelName},</if>
+            <if test="address != null">#{address},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="starLevel != null">#{starLevel},</if>
+            <if test="description != null">#{description},</if>
+            <if test="status != null">#{status},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateHotel" parameterType="MeetingHotel">
+        update meeting_hotel
+        <set>
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="hotelName != null and hotelName != ''">hotel_name = #{hotelName},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="starLevel != null">star_level = #{starLevel},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = sysdate()
+        </set>
+        where hotel_id = #{hotelId}
+    </update>
+
+    <delete id="deleteHotelById" parameterType="Long">
+        delete from meeting_hotel where hotel_id = #{hotelId}
+    </delete>
+
+    <delete id="deleteHotelByIds" parameterType="Long">
+        delete from meeting_hotel where hotel_id in
+        <foreach collection="array" item="hotelId" open="(" separator="," close=")">
+            #{hotelId}
+        </foreach>
+    </delete>
+
+</mapper>

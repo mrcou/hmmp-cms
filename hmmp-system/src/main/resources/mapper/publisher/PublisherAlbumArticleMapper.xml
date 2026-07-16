@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherAlbumArticleMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherAlbumArticle" id="PublisherAlbumArticleResult">
+        <id     property="id"           column="id"               />
+        <result property="albumId"      column="album_id"         />
+        <result property="articleId"    column="article_id"       />
+        <result property="sortNo"       column="sort_no"          />
+        <result property="createTime"   column="create_time"      />
+    </resultMap>
+
+    <sql id="selectPublisherAlbumArticleVo">
+        select id, album_id, article_id, sort_no, create_time
+        from publisher_album_article
+    </sql>
+
+    <select id="selectAlbumArticleList" parameterType="com.hmmp.system.domain.publisher.PublisherAlbumArticle" resultMap="PublisherAlbumArticleResult">
+        <include refid="selectPublisherAlbumArticleVo"/>
+        <where>
+            <if test="albumId != null">AND album_id = #{albumId}</if>
+            <if test="articleId != null">AND article_id = #{articleId}</if>
+        </where>
+        order by sort_no asc
+    </select>
+
+    <insert id="insertAlbumArticle" parameterType="com.hmmp.system.domain.publisher.PublisherAlbumArticle" useGeneratedKeys="true" keyProperty="id">
+        insert into publisher_album_article (
+            album_id, article_id, sort_no, create_time
+        ) values (
+            #{albumId}, #{articleId}, #{sortNo}, sysdate()
+        )
+    </insert>
+
+    <delete id="deleteAlbumArticleById" parameterType="Long">
+        delete from publisher_album_article where id = #{id}
+    </delete>
+
+    <delete id="deleteAlbumArticleByIds" parameterType="Long">
+        delete from publisher_album_article where id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteByAlbumId" parameterType="Long">
+        delete from publisher_album_article where album_id = #{albumId}
+    </delete>
+
+</mapper>

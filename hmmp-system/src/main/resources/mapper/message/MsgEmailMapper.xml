@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.message.MsgEmailMapper">
+
+    <resultMap type="MsgEmail" id="MsgEmailResult">
+        <id     property="emailId"      column="email_id"       />
+        <result property="sendFrom"     column="send_from"      />
+        <result property="sendTo"       column="send_to"        />
+        <result property="cc"           column="cc"             />
+        <result property="bcc"          column="bcc"            />
+        <result property="subject"      column="subject"        />
+        <result property="content"      column="content"        />
+        <result property="attachments"  column="attachments"    />
+        <result property="sendStatus"   column="send_status"    />
+        <result property="sendTime"     column="send_time"      />
+        <result property="failReason"   column="fail_reason"    />
+        <result property="retryCount"   column="retry_count"    />
+        <result property="createBy"     column="create_by"      />
+        <result property="createTime"   column="create_time"    />
+        <result property="updateTime"   column="update_time"    />
+    </resultMap>
+
+    <sql id="selectEmailVo">
+        select email_id, send_from, send_to, cc, bcc, subject, content, attachments, send_status, send_time, fail_reason, retry_count, create_by, create_time, update_time
+        from msg_email
+    </sql>
+
+    <select id="selectEmailList" parameterType="MsgEmail" resultMap="MsgEmailResult">
+        <include refid="selectEmailVo"/>
+        <where>
+            <if test="sendStatus != null and sendStatus != ''">AND send_status = #{sendStatus}</if>
+            <if test="sendFrom != null and sendFrom != ''">AND send_from like concat('%', #{sendFrom}, '%')</if>
+            <if test="sendTo != null and sendTo != ''">AND send_to like concat('%', #{sendTo}, '%')</if>
+            <if test="subject != null and subject != ''">AND subject like concat('%', #{subject}, '%')</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectEmailById" parameterType="Long" resultMap="MsgEmailResult">
+        <include refid="selectEmailVo"/>
+        where email_id = #{emailId}
+    </select>
+
+    <insert id="insertEmail" parameterType="MsgEmail" useGeneratedKeys="true" keyProperty="emailId">
+        insert into msg_email(
+            <if test="sendFrom != null">send_from,</if>
+            <if test="sendTo != null">send_to,</if>
+            <if test="cc != null">cc,</if>
+            <if test="bcc != null">bcc,</if>
+            <if test="subject != null">subject,</if>
+            <if test="content != null">content,</if>
+            <if test="attachments != null">attachments,</if>
+            <if test="sendStatus != null">send_status,</if>
+            <if test="sendTime != null">send_time,</if>
+            <if test="failReason != null">fail_reason,</if>
+            <if test="retryCount != null">retry_count,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        )values(
+            <if test="sendFrom != null">#{sendFrom},</if>
+            <if test="sendTo != null">#{sendTo},</if>
+            <if test="cc != null">#{cc},</if>
+            <if test="bcc != null">#{bcc},</if>
+            <if test="subject != null">#{subject},</if>
+            <if test="content != null">#{content},</if>
+            <if test="attachments != null">#{attachments},</if>
+            <if test="sendStatus != null">#{sendStatus},</if>
+            <if test="sendTime != null">#{sendTime},</if>
+            <if test="failReason != null">#{failReason},</if>
+            <if test="retryCount != null">#{retryCount},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateEmail" parameterType="MsgEmail">
+        update msg_email
+        <set>
+            <if test="sendFrom != null">send_from = #{sendFrom},</if>
+            <if test="sendTo != null">send_to = #{sendTo},</if>
+            <if test="cc != null">cc = #{cc},</if>
+            <if test="bcc != null">bcc = #{bcc},</if>
+            <if test="subject != null">subject = #{subject},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="attachments != null">attachments = #{attachments},</if>
+            <if test="sendStatus != null">send_status = #{sendStatus},</if>
+            <if test="sendTime != null">send_time = #{sendTime},</if>
+            <if test="failReason != null">fail_reason = #{failReason},</if>
+            <if test="retryCount != null">retry_count = #{retryCount},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where email_id = #{emailId}
+    </update>
+
+    <delete id="deleteEmailById" parameterType="Long">
+        delete from msg_email where email_id = #{emailId}
+    </delete>
+
+    <delete id="deleteEmailByIds" parameterType="Long">
+        delete from msg_email where email_id in
+        <foreach collection="array" item="emailId" open="(" separator="," close=")">
+            #{emailId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.EditorGroupManuscriptMapper">
+
+    <resultMap type="EditorGroupManuscript" id="EditorGroupManuscriptResult">
+        <id     property="id"            column="id"             />
+        <result property="groupId"       column="group_id"       />
+        <result property="manuscriptId"  column="manuscript_id"  />
+        <result property="sortNo"        column="sort_no"        />
+        <result property="pagePosition"  column="page_position"  />
+        <result property="wordCount"     column="word_count"     />
+        <result property="pageCount"     column="page_count"     />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectEditorGroupManuscriptVo">
+        select id, group_id, manuscript_id, sort_no, page_position, word_count, page_count, create_time
+        from editor_group_manuscript
+    </sql>
+
+    <select id="selectGroupManuscriptList" parameterType="EditorGroupManuscript" resultMap="EditorGroupManuscriptResult">
+        <include refid="selectEditorGroupManuscriptVo"/>
+        <where>
+            <if test="groupId != null">AND group_id = #{groupId}</if>
+            <if test="manuscriptId != null">AND manuscript_id = #{manuscriptId}</if>
+        </where>
+        order by sort_no
+    </select>
+
+    <select id="selectGroupManuscriptById" parameterType="Long" resultMap="EditorGroupManuscriptResult">
+        <include refid="selectEditorGroupManuscriptVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectManuscriptsByGroupId" parameterType="Long" resultMap="EditorGroupManuscriptResult">
+        <include refid="selectEditorGroupManuscriptVo"/>
+        where group_id = #{groupId} order by sort_no
+    </select>
+
+    <insert id="insertGroupManuscript" parameterType="EditorGroupManuscript" useGeneratedKeys="true" keyProperty="id">
+        insert into editor_group_manuscript (
+            group_id, manuscript_id, sort_no, page_position, word_count, page_count, create_time
+        ) values (
+            #{groupId}, #{manuscriptId}, #{sortNo}, #{pagePosition}, #{wordCount}, #{pageCount}, sysdate()
+        )
+    </insert>
+
+    <update id="updateGroupManuscript" parameterType="EditorGroupManuscript">
+        update editor_group_manuscript
+        <set>
+            <if test="sortNo != null">sort_no = #{sortNo},</if>
+            <if test="pagePosition != null">page_position = #{pagePosition},</if>
+            <if test="wordCount != null">word_count = #{wordCount},</if>
+            <if test="pageCount != null">page_count = #{pageCount},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteGroupManuscriptById" parameterType="Long">
+        delete from editor_group_manuscript where id = #{id}
+    </delete>
+
+    <delete id="deleteGroupManuscriptByGroupId" parameterType="Long">
+        delete from editor_group_manuscript where group_id = #{groupId}
+    </delete>
+
+    <delete id="deleteGroupManuscriptByIds" parameterType="Long">
+        delete from editor_group_manuscript where id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

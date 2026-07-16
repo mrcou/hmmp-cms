@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.meeting.MeetingMeetingMapper">
+
+    <resultMap type="MeetingMeeting" id="MeetingMeetingResult">
+        <id     property="meetingId"          column="meeting_id"          />
+        <result property="meetingName"        column="meeting_name"        />
+        <result property="meetingCode"        column="meeting_code"        />
+        <result property="meetingType"        column="meeting_type"        />
+        <result property="startDate"          column="start_date"          />
+        <result property="endDate"            column="end_date"            />
+        <result property="location"           column="location"            />
+        <result property="host"               column="host"                />
+        <result property="contactPerson"      column="contact_person"      />
+        <result property="contactPhone"       column="contact_phone"       />
+        <result property="description"        column="description"         />
+        <result property="status"             column="status"              />
+        <result property="maxParticipants"    column="max_participants"    />
+        <result property="actualParticipants" column="actual_participants" />
+        <result property="createBy"           column="create_by"           />
+        <result property="createTime"         column="create_time"         />
+        <result property="updateBy"           column="update_by"           />
+        <result property="updateTime"         column="update_time"         />
+    </resultMap>
+
+    <sql id="selectMeetingVo">
+        select meeting_id, meeting_name, meeting_code, meeting_type, start_date, end_date,
+               location, host, contact_person, contact_phone, description, status,
+               max_participants, actual_participants, create_by, create_time, update_by, update_time
+        from meeting_meeting
+    </sql>
+
+    <select id="selectMeetingList" parameterType="MeetingMeeting" resultMap="MeetingMeetingResult">
+        <include refid="selectMeetingVo"/>
+        <where>
+            <if test="meetingName != null and meetingName != ''">
+                AND meeting_name like concat('%', #{meetingName}, '%')
+            </if>
+            <if test="meetingCode != null and meetingCode != ''">
+                AND meeting_code = #{meetingCode}
+            </if>
+            <if test="meetingType != null and meetingType != ''">
+                AND meeting_type = #{meetingType}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND date_format(create_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND date_format(create_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectMeetingById" parameterType="Long" resultMap="MeetingMeetingResult">
+        <include refid="selectMeetingVo"/>
+        where meeting_id = #{meetingId}
+    </select>
+
+    <insert id="insertMeeting" parameterType="MeetingMeeting" useGeneratedKeys="true" keyProperty="meetingId">
+        insert into meeting_meeting(
+            <if test="meetingName != null and meetingName != ''">meeting_name,</if>
+            <if test="meetingCode != null">meeting_code,</if>
+            <if test="meetingType != null">meeting_type,</if>
+            <if test="startDate != null">start_date,</if>
+            <if test="endDate != null">end_date,</if>
+            <if test="location != null">location,</if>
+            <if test="host != null">host,</if>
+            <if test="contactPerson != null">contact_person,</if>
+            <if test="contactPhone != null">contact_phone,</if>
+            <if test="description != null">description,</if>
+            <if test="status != null">status,</if>
+            <if test="maxParticipants != null">max_participants,</if>
+            <if test="actualParticipants != null">actual_participants,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        )values(
+            <if test="meetingName != null and meetingName != ''">#{meetingName},</if>
+            <if test="meetingCode != null">#{meetingCode},</if>
+            <if test="meetingType != null">#{meetingType},</if>
+            <if test="startDate != null">#{startDate},</if>
+            <if test="endDate != null">#{endDate},</if>
+            <if test="location != null">#{location},</if>
+            <if test="host != null">#{host},</if>
+            <if test="contactPerson != null">#{contactPerson},</if>
+            <if test="contactPhone != null">#{contactPhone},</if>
+            <if test="description != null">#{description},</if>
+            <if test="status != null">#{status},</if>
+            <if test="maxParticipants != null">#{maxParticipants},</if>
+            <if test="actualParticipants != null">#{actualParticipants},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateMeeting" parameterType="MeetingMeeting">
+        update meeting_meeting
+        <set>
+            <if test="meetingName != null and meetingName != ''">meeting_name = #{meetingName},</if>
+            <if test="meetingCode != null">meeting_code = #{meetingCode},</if>
+            <if test="meetingType != null">meeting_type = #{meetingType},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="host != null">host = #{host},</if>
+            <if test="contactPerson != null">contact_person = #{contactPerson},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="maxParticipants != null">max_participants = #{maxParticipants},</if>
+            <if test="actualParticipants != null">actual_participants = #{actualParticipants},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where meeting_id = #{meetingId}
+    </update>
+
+    <delete id="deleteMeetingById" parameterType="Long">
+        delete from meeting_meeting where meeting_id = #{meetingId}
+    </delete>
+
+    <delete id="deleteMeetingByIds" parameterType="Long">
+        delete from meeting_meeting where meeting_id in
+        <foreach collection="array" item="meetingId" open="(" separator="," close=")">
+            #{meetingId}
+        </foreach>
+    </delete>
+
+</mapper>

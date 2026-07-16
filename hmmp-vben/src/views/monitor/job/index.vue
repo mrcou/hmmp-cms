@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+﻿<script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { MonitorJobApi } from '#/api/monitor/job';
 
@@ -43,12 +43,12 @@ const tabItems = [
 
 const [FormModal, formModalApi] = useVbenModal({
   connectedComponent: Form,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [DetailModal, detailModalApi] = useVbenModal({
   connectedComponent: Detail,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [JobGrid, jobGridApi] = useVbenVxeGrid({

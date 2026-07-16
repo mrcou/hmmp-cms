@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.AuthorSubmissionMapper">
+
+    <resultMap type="AuthorSubmission" id="AuthorSubmissionResult">
+        <id     property="submissionId"   column="submission_id"    />
+        <result property="userId"         column="user_id"          />
+        <result property="manuscriptId"   column="manuscript_id"    />
+        <result property="title"          column="title"            />
+        <result property="abstractText"   column="abstract"         />
+        <result property="keywords"       column="keywords"         />
+        <result property="filePath"       column="file_path"        />
+        <result property="submissionTime" column="submission_time"  />
+        <result property="status"         column="status"           />
+        <result property="feedback"       column="feedback"         />
+        <result property="feedbackTime"   column="feedback_time"    />
+        <result property="isDeleted"      column="is_deleted"       />
+        <result property="createBy"       column="create_by"        />
+        <result property="createTime"     column="create_time"      />
+        <result property="updateBy"       column="update_by"        />
+        <result property="updateTime"     column="update_time"      />
+        <result property="remark"         column="remark"           />
+    </resultMap>
+
+    <sql id="selectAuthorSubmissionVo">
+        select submission_id, user_id, manuscript_id, title, abstract, keywords,
+               file_path, submission_time, status, feedback, feedback_time, is_deleted,
+               create_by, create_time, update_by, update_time, remark
+        from author_submission
+    </sql>
+
+    <select id="selectAuthorSubmissionList" parameterType="AuthorSubmission" resultMap="AuthorSubmissionResult">
+        <include refid="selectAuthorSubmissionVo"/>
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="manuscriptId != null">
+                AND manuscript_id = #{manuscriptId}
+            </if>
+            <if test="title != null and title != ''">
+                AND title like concat('%', #{title}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="isDeleted != null and isDeleted != ''">
+                AND is_deleted = #{isDeleted}
+            </if>
+        </where>
+        order by submission_time desc
+    </select>
+
+    <select id="selectAuthorSubmissionById" parameterType="Long" resultMap="AuthorSubmissionResult">
+        <include refid="selectAuthorSubmissionVo"/>
+        where submission_id = #{submissionId}
+    </select>
+
+    <select id="selectAuthorSubmissionByManuscriptId" parameterType="Long" resultMap="AuthorSubmissionResult">
+        <include refid="selectAuthorSubmissionVo"/>
+        where manuscript_id = #{manuscriptId}
+    </select>
+
+    <insert id="insertAuthorSubmission" parameterType="AuthorSubmission" useGeneratedKeys="true" keyProperty="submissionId">
+        insert into author_submission
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="manuscriptId != null">manuscript_id,</if>
+            <if test="title != null">title,</if>
+            <if test="abstractText != null">abstract,</if>
+            <if test="keywords != null">keywords,</if>
+            <if test="filePath != null">file_path,</if>
+            <if test="submissionTime != null">submission_time,</if>
+            <if test="status != null">status,</if>
+            <if test="feedback != null">feedback,</if>
+            <if test="feedbackTime != null">feedback_time,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="manuscriptId != null">#{manuscriptId},</if>
+            <if test="title != null">#{title},</if>
+            <if test="abstractText != null">#{abstractText},</if>
+            <if test="keywords != null">#{keywords},</if>
+            <if test="filePath != null">#{filePath},</if>
+            <if test="submissionTime != null">#{submissionTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="feedback != null">#{feedback},</if>
+            <if test="feedbackTime != null">#{feedbackTime},</if>
+            <if test="isDeleted != null">#{isDeleted},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateAuthorSubmission" parameterType="AuthorSubmission">
+        update author_submission
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="manuscriptId != null">manuscript_id = #{manuscriptId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="abstractText != null">abstract = #{abstractText},</if>
+            <if test="keywords != null">keywords = #{keywords},</if>
+            <if test="filePath != null">file_path = #{filePath},</if>
+            <if test="submissionTime != null">submission_time = #{submissionTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="feedback != null">feedback = #{feedback},</if>
+            <if test="feedbackTime != null">feedback_time = #{feedbackTime},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where submission_id = #{submissionId}
+    </update>
+
+    <delete id="deleteAuthorSubmissionById" parameterType="Long">
+        delete from author_submission where submission_id = #{submissionId}
+    </delete>
+
+    <delete id="deleteAuthorSubmissionByIds" parameterType="String">
+        delete from author_submission where submission_id in
+        <foreach item="submissionId" collection="array" open="(" separator="," close=")">
+            #{submissionId}
+        </foreach>
+    </delete>
+
+</mapper>

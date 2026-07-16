@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.meeting.MeetingHotelBookedMapper">
+
+    <resultMap type="MeetingHotelBooked" id="MeetingHotelBookedResult">
+        <id     property="bookedId"      column="booked_id"       />
+        <result property="hotelId"       column="hotel_id"        />
+        <result property="roomId"        column="room_id"         />
+        <result property="userId"        column="user_id"         />
+        <result property="meetingId"     column="meeting_id"      />
+        <result property="checkInDate"   column="check_in_date"   />
+        <result property="checkOutDate"  column="check_out_date"  />
+        <result property="qty"           column="qty"             />
+        <result property="totalAmount"   column="total_amount"    />
+        <result property="status"        column="status"          />
+        <result property="createTime"    column="create_time"     />
+    </resultMap>
+
+    <sql id="selectHotelBookedVo">
+        select booked_id, hotel_id, room_id, user_id, meeting_id, check_in_date, check_out_date, qty, total_amount, status, create_time
+        from meeting_hotel_booked
+    </sql>
+
+    <select id="selectHotelBookedList" parameterType="MeetingHotelBooked" resultMap="MeetingHotelBookedResult">
+        <include refid="selectHotelBookedVo"/>
+        <where>
+            <if test="meetingId != null">AND meeting_id = #{meetingId}</if>
+            <if test="hotelId != null">AND hotel_id = #{hotelId}</if>
+            <if test="roomId != null">AND room_id = #{roomId}</if>
+            <if test="userId != null">AND user_id = #{userId}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectHotelBookedById" parameterType="Long" resultMap="MeetingHotelBookedResult">
+        <include refid="selectHotelBookedVo"/>
+        where booked_id = #{bookedId}
+    </select>
+
+    <insert id="insertHotelBooked" parameterType="MeetingHotelBooked" useGeneratedKeys="true" keyProperty="bookedId">
+        insert into meeting_hotel_booked(
+            <if test="hotelId != null">hotel_id,</if>
+            <if test="roomId != null">room_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="checkInDate != null">check_in_date,</if>
+            <if test="checkOutDate != null">check_out_date,</if>
+            <if test="qty != null">qty,</if>
+            <if test="totalAmount != null">total_amount,</if>
+            <if test="status != null">status,</if>
+            create_time
+        )values(
+            <if test="hotelId != null">#{hotelId},</if>
+            <if test="roomId != null">#{roomId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="checkInDate != null">#{checkInDate},</if>
+            <if test="checkOutDate != null">#{checkOutDate},</if>
+            <if test="qty != null">#{qty},</if>
+            <if test="totalAmount != null">#{totalAmount},</if>
+            <if test="status != null">#{status},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateHotelBooked" parameterType="MeetingHotelBooked">
+        update meeting_hotel_booked
+        <set>
+            <if test="hotelId != null">hotel_id = #{hotelId},</if>
+            <if test="roomId != null">room_id = #{roomId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="checkInDate != null">check_in_date = #{checkInDate},</if>
+            <if test="checkOutDate != null">check_out_date = #{checkOutDate},</if>
+            <if test="qty != null">qty = #{qty},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        where booked_id = #{bookedId}
+    </update>
+
+    <delete id="deleteHotelBookedById" parameterType="Long">
+        delete from meeting_hotel_booked where booked_id = #{bookedId}
+    </delete>
+
+    <delete id="deleteHotelBookedByIds" parameterType="Long">
+        delete from meeting_hotel_booked where booked_id in
+        <foreach collection="array" item="bookedId" open="(" separator="," close=")">
+            #{bookedId}
+        </foreach>
+    </delete>
+
+</mapper>

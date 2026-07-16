@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.StatDataMapper">
+
+    <resultMap type="StatData" id="StatDataResult">
+        <id     property="statId"      column="stat_id"       />
+        <result property="statType"    column="stat_type"     />
+        <result property="statName"    column="stat_name"     />
+        <result property="statDate"    column="stat_date"     />
+        <result property="year"        column="year"          />
+        <result property="month"       column="month"         />
+        <result property="dataValue"   column="data_value"    />
+        <result property="dataUnit"    column="data_unit"     />
+        <result property="dataJson"    column="data_json"     />
+        <result property="statTime"    column="stat_time"     />
+        <result property="createBy"    column="create_by"     />
+        <result property="createTime"  column="create_time"   />
+    </resultMap>
+
+    <sql id="selectStatDataVo">
+        select stat_id, stat_type, stat_name, stat_date, year, month, data_value,
+               data_unit, data_json, stat_time, create_by, create_time
+        from stat_data
+    </sql>
+
+    <select id="selectStatDataList" parameterType="StatData" resultMap="StatDataResult">
+        <include refid="selectStatDataVo"/>
+        <where>
+            <if test="statType != null and statType != ''">
+                AND stat_type = #{statType}
+            </if>
+            <if test="statName != null and statName != ''">
+                AND stat_name like concat('%', #{statName}, '%')
+            </if>
+            <if test="year != null">
+                AND year = #{year}
+            </if>
+            <if test="month != null">
+                AND month = #{month}
+            </if>
+            <if test="statDate != null">
+                AND stat_date = #{statDate}
+            </if>
+        </where>
+        order by stat_date desc, stat_time desc
+    </select>
+
+    <select id="selectStatDataById" parameterType="Long" resultMap="StatDataResult">
+        <include refid="selectStatDataVo"/>
+        where stat_id = #{statId}
+    </select>
+
+    <insert id="insertStatData" parameterType="StatData" useGeneratedKeys="true" keyProperty="statId">
+        insert into stat_data
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="statType != null">stat_type,</if>
+            <if test="statName != null">stat_name,</if>
+            <if test="statDate != null">stat_date,</if>
+            <if test="year != null">year,</if>
+            <if test="month != null">month,</if>
+            <if test="dataValue != null">data_value,</if>
+            <if test="dataUnit != null">data_unit,</if>
+            <if test="dataJson != null">data_json,</if>
+            <if test="statTime != null">stat_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="statType != null">#{statType},</if>
+            <if test="statName != null">#{statName},</if>
+            <if test="statDate != null">#{statDate},</if>
+            <if test="year != null">#{year},</if>
+            <if test="month != null">#{month},</if>
+            <if test="dataValue != null">#{dataValue},</if>
+            <if test="dataUnit != null">#{dataUnit},</if>
+            <if test="dataJson != null">#{dataJson},</if>
+            <if test="statTime != null">#{statTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateStatData" parameterType="StatData">
+        update stat_data
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="statType != null">stat_type = #{statType},</if>
+            <if test="statName != null">stat_name = #{statName},</if>
+            <if test="statDate != null">stat_date = #{statDate},</if>
+            <if test="year != null">year = #{year},</if>
+            <if test="month != null">month = #{month},</if>
+            <if test="dataValue != null">data_value = #{dataValue},</if>
+            <if test="dataUnit != null">data_unit = #{dataUnit},</if>
+            <if test="dataJson != null">data_json = #{dataJson},</if>
+            <if test="statTime != null">stat_time = #{statTime},</if>
+        </trim>
+        where stat_id = #{statId}
+    </update>
+
+    <delete id="deleteStatDataById" parameterType="Long">
+        delete from stat_data where stat_id = #{statId}
+    </delete>
+
+    <delete id="deleteStatDataByIds" parameterType="String">
+        delete from stat_data where stat_id in
+        <foreach item="statId" collection="array" open="(" separator="," close=")">
+            #{statId}
+        </foreach>
+    </delete>
+
+</mapper>

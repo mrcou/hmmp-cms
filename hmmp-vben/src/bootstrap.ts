@@ -7,6 +7,8 @@ import { initStores } from '@vben/stores';
 import '@vben/styles';
 import '@vben/styles/antdv-next';
 
+import Antd from 'antdv-next';
+
 import { useTitle } from '@vueuse/core';
 
 import { $t, setupI18n } from '#/locales';
@@ -33,6 +35,9 @@ async function bootstrap(namespace: string) {
   // });
 
   const app = createApp(App);
+
+  // 全局注册 antdv-next 组件库
+  app.use(Antd);
 
   // 注册v-loading指令
   registerLoadingDirective(app, {

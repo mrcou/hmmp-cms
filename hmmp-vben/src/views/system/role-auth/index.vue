@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+﻿<script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { RoleUserApi } from '#/api/system/role-user';
 
@@ -24,7 +24,7 @@ const roleName = String(route.query.roleName ?? '');
 
 const [SelectUserModal, selectUserModalApi] = useVbenModal({
   connectedComponent: SelectUser,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [Grid, gridApi] = useVbenVxeGrid({

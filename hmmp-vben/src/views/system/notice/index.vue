@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+﻿<script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { SystemNoticeApi } from '#/api/system/notice';
 
@@ -17,12 +17,12 @@ import Preview from './modules/preview.vue';
 
 const [FormModal, formModalApi] = useVbenModal({
   connectedComponent: Form,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [PreviewModal, previewModalApi] = useVbenModal({
   connectedComponent: Preview,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [Grid, gridApi] = useVbenVxeGrid({

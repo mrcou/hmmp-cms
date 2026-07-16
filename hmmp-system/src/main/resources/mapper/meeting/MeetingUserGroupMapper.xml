@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.meeting.MeetingUserGroupMapper">
+
+    <resultMap type="MeetingUserGroup" id="MeetingUserGroupResult">
+        <id     property="groupId"      column="group_id"      />
+        <result property="meetingId"    column="meeting_id"    />
+        <result property="groupName"    column="group_name"    />
+        <result property="groupCode"    column="group_code"    />
+        <result property="description"  column="description"   />
+        <result property="sortOrder"    column="sort_order"    />
+        <result property="createTime"   column="create_time"   />
+    </resultMap>
+
+    <sql id="selectGroupVo">
+        select group_id, meeting_id, group_name, group_code, description, sort_order, create_time
+        from meeting_user_group
+    </sql>
+
+    <select id="selectGroupList" parameterType="MeetingUserGroup" resultMap="MeetingUserGroupResult">
+        <include refid="selectGroupVo"/>
+        <where>
+            <if test="meetingId != null">AND meeting_id = #{meetingId}</if>
+            <if test="groupName != null and groupName != ''">AND group_name like concat('%', #{groupName}, '%')</if>
+            <if test="groupCode != null and groupCode != ''">AND group_code = #{groupCode}</if>
+        </where>
+        order by sort_order
+    </select>
+
+    <select id="selectGroupById" parameterType="Long" resultMap="MeetingUserGroupResult">
+        <include refid="selectGroupVo"/>
+        where group_id = #{groupId}
+    </select>
+
+    <insert id="insertGroup" parameterType="MeetingUserGroup" useGeneratedKeys="true" keyProperty="groupId">
+        insert into meeting_user_group(
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="groupName != null and groupName != ''">group_name,</if>
+            <if test="groupCode != null">group_code,</if>
+            <if test="description != null">description,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            create_time
+        )values(
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="groupName != null and groupName != ''">#{groupName},</if>
+            <if test="groupCode != null">#{groupCode},</if>
+            <if test="description != null">#{description},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateGroup" parameterType="MeetingUserGroup">
+        update meeting_user_group
+        <set>
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="groupName != null and groupName != ''">group_name = #{groupName},</if>
+            <if test="groupCode != null">group_code = #{groupCode},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+        </set>
+        where group_id = #{groupId}
+    </update>
+
+    <delete id="deleteGroupById" parameterType="Long">
+        delete from meeting_user_group where group_id = #{groupId}
+    </delete>
+
+    <delete id="deleteGroupByIds" parameterType="Long">
+        delete from meeting_user_group where group_id in
+        <foreach collection="array" item="groupId" open="(" separator="," close=")">
+            #{groupId}
+        </foreach>
+    </delete>
+
+</mapper>

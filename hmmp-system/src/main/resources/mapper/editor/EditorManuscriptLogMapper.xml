@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.EditorManuscriptLogMapper">
+
+    <resultMap type="EditorManuscriptLog" id="EditorManuscriptLogResult">
+        <id     property="logId"          column="log_id"           />
+        <result property="manuscriptId"   column="manuscript_id"    />
+        <result property="logType"        column="log_type"         />
+        <result property="oldStatus"      column="old_status"       />
+        <result property="newStatus"      column="new_status"       />
+        <result property="operatorId"     column="operator_id"      />
+        <result property="operatorName"   column="operator_name"    />
+        <result property="operateTime"    column="operate_time"     />
+        <result property="remark"         column="remark"           />
+    </resultMap>
+
+    <sql id="selectEditorManuscriptLogVo">
+        select log_id, manuscript_id, log_type, old_status, new_status,
+               operator_id, operator_name, operate_time, remark
+        from editor_manuscript_log
+    </sql>
+
+    <select id="selectLogList" parameterType="EditorManuscriptLog" resultMap="EditorManuscriptLogResult">
+        <include refid="selectEditorManuscriptLogVo"/>
+        <where>
+            <if test="manuscriptId != null">AND manuscript_id = #{manuscriptId}</if>
+            <if test="logType != null and logType != ''">AND log_type = #{logType}</if>
+            <if test="operatorId != null">AND operator_id = #{operatorId}</if>
+        </where>
+        order by operate_time desc
+    </select>
+
+    <select id="selectLogById" parameterType="Long" resultMap="EditorManuscriptLogResult">
+        <include refid="selectEditorManuscriptLogVo"/>
+        where log_id = #{logId}
+    </select>
+
+    <select id="selectLogByManuscriptId" parameterType="Long" resultMap="EditorManuscriptLogResult">
+        <include refid="selectEditorManuscriptLogVo"/>
+        where manuscript_id = #{manuscriptId} order by operate_time desc
+    </select>
+
+    <insert id="insertLog" parameterType="EditorManuscriptLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into editor_manuscript_log (
+            manuscript_id, log_type, old_status, new_status,
+            operator_id, operator_name, operate_time, remark
+        ) values (
+            #{manuscriptId}, #{logType}, #{oldStatus}, #{newStatus},
+            #{operatorId}, #{operatorName}, sysdate(), #{remark}
+        )
+    </insert>
+
+    <delete id="deleteLogById" parameterType="Long">
+        delete from editor_manuscript_log where log_id = #{logId}
+    </delete>
+
+    <delete id="deleteLogByManuscriptId" parameterType="Long">
+        delete from editor_manuscript_log where manuscript_id = #{manuscriptId}
+    </delete>
+
+</mapper>

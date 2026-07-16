@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.ReviewerTaskMapper">
+
+    <resultMap type="ReviewerTask" id="ReviewerTaskResult">
+        <id     property="taskId"        column="task_id"         />
+        <result property="auditId"       column="audit_id"        />
+        <result property="manuscriptId"  column="manuscript_id"   />
+        <result property="reviewerId"    column="reviewer_id"     />
+        <result property="title"         column="title"           />
+        <result property="abstractText"  column="abstract"        />
+        <result property="taskStatus"    column="task_status"     />
+        <result property="acceptTime"    column="accept_time"     />
+        <result property="rejectReason"  column="reject_reason"   />
+        <result property="deadlineTime"  column="deadline_time"   />
+        <result property="submitTime"    column="submit_time"     />
+        <result property="createBy"      column="create_by"       />
+        <result property="createTime"    column="create_time"     />
+    </resultMap>
+
+    <sql id="selectReviewerTaskVo">
+        select task_id, audit_id, manuscript_id, reviewer_id, title, abstract,
+               task_status, accept_time, reject_reason, deadline_time, submit_time,
+               create_by, create_time
+        from reviewer_task
+    </sql>
+
+    <select id="selectReviewerTaskList" parameterType="ReviewerTask" resultMap="ReviewerTaskResult">
+        <include refid="selectReviewerTaskVo"/>
+        <where>
+            <if test="reviewerId != null">
+                AND reviewer_id = #{reviewerId}
+            </if>
+            <if test="manuscriptId != null">
+                AND manuscript_id = #{manuscriptId}
+            </if>
+            <if test="auditId != null">
+                AND audit_id = #{auditId}
+            </if>
+            <if test="taskStatus != null and taskStatus != ''">
+                AND task_status = #{taskStatus}
+            </if>
+            <if test="title != null and title != ''">
+                AND title like concat('%', #{title}, '%')
+            </if>
+        </where>
+        order by task_status asc, create_time desc
+    </select>
+
+    <select id="selectReviewerTaskById" parameterType="Long" resultMap="ReviewerTaskResult">
+        <include refid="selectReviewerTaskVo"/>
+        where task_id = #{taskId}
+    </select>
+
+    <select id="selectReviewerTaskByManuscriptId" parameterType="Long" resultMap="ReviewerTaskResult">
+        <include refid="selectReviewerTaskVo"/>
+        where manuscript_id = #{manuscriptId}
+    </select>
+
+    <insert id="insertReviewerTask" parameterType="ReviewerTask" useGeneratedKeys="true" keyProperty="taskId">
+        insert into reviewer_task
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="auditId != null">audit_id,</if>
+            <if test="manuscriptId != null">manuscript_id,</if>
+            <if test="reviewerId != null">reviewer_id,</if>
+            <if test="title != null">title,</if>
+            <if test="abstractText != null">abstract,</if>
+            <if test="taskStatus != null">task_status,</if>
+            <if test="acceptTime != null">accept_time,</if>
+            <if test="rejectReason != null">reject_reason,</if>
+            <if test="deadlineTime != null">deadline_time,</if>
+            <if test="submitTime != null">submit_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="auditId != null">#{auditId},</if>
+            <if test="manuscriptId != null">#{manuscriptId},</if>
+            <if test="reviewerId != null">#{reviewerId},</if>
+            <if test="title != null">#{title},</if>
+            <if test="abstractText != null">#{abstractText},</if>
+            <if test="taskStatus != null">#{taskStatus},</if>
+            <if test="acceptTime != null">#{acceptTime},</if>
+            <if test="rejectReason != null">#{rejectReason},</if>
+            <if test="deadlineTime != null">#{deadlineTime},</if>
+            <if test="submitTime != null">#{submitTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateReviewerTask" parameterType="ReviewerTask">
+        update reviewer_task
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="auditId != null">audit_id = #{auditId},</if>
+            <if test="manuscriptId != null">manuscript_id = #{manuscriptId},</if>
+            <if test="reviewerId != null">reviewer_id = #{reviewerId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="abstractText != null">abstract = #{abstractText},</if>
+            <if test="taskStatus != null">task_status = #{taskStatus},</if>
+            <if test="acceptTime != null">accept_time = #{acceptTime},</if>
+            <if test="rejectReason != null">reject_reason = #{rejectReason},</if>
+            <if test="deadlineTime != null">deadline_time = #{deadlineTime},</if>
+            <if test="submitTime != null">submit_time = #{submitTime},</if>
+        </trim>
+        where task_id = #{taskId}
+    </update>
+
+    <delete id="deleteReviewerTaskById" parameterType="Long">
+        delete from reviewer_task where task_id = #{taskId}
+    </delete>
+
+    <delete id="deleteReviewerTaskByIds" parameterType="String">
+        delete from reviewer_task where task_id in
+        <foreach item="taskId" collection="array" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+    </delete>
+
+</mapper>

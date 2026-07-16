@@ -23,6 +23,38 @@
             <artifactId>hmmp-common</artifactId>
         </dependency>
 
+        <!-- 阿里云短信SDK -->
+        <!--
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>dysmsapi20170525</artifactId>
+            <version>2.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>tea-openapi</artifactId>
+            <version>0.2.2</version>
+        </dependency>
+        -->
+
+        <!-- 火山引擎短信SDK -->
+        <!--
+        <dependency>
+            <groupId>com.volcengine</groupId>
+            <artifactId>volc-sdk-java</artifactId>
+            <version>1.0.121</version>
+        </dependency>
+        -->
+
+        <!-- 腾讯云短信SDK -->
+        <!--
+        <dependency>
+            <groupId>com.tencentcloudapi</groupId>
+            <artifactId>tencentcloud-sdk-java</artifactId>
+            <version>3.1.553</version>
+        </dependency>
+        -->
+
     </dependencies>
 
 </project>

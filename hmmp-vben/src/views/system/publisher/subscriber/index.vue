@@ -1,0 +1,198 @@
+<script lang="ts" setup>
+import type { PublisherApi } from '#/api/biz/publisher';
+
+import { onMounted, reactive, ref } from 'vue';
+import { message } from 'antdv-next';
+import * as publisherApi from '#/api/biz/publisher';
+
+const loading = ref(false);
+const dataSource = ref<PublisherApi.Subscriber[]>([]);
+const pagination = reactive({ current: 1, pageSize: 10, total: 0 });
+const searchForm = reactive({ realName: '', phone: '', status: undefined as string | undefined });
+const modalVisible = ref(false);
+const modalTitle = ref('新增订户');
+const formData = reactive<PublisherApi.Subscriber>({ realName: '', email: '', phone: '', mobile: '', address: '', company: '', status: '0' });
+const isEdit = ref(false);
+
+const columns = [
+  { title: '订户ID', dataIndex: 'subscriberId', key: 'subscriberId', width: 100 },
+  { title: '姓名', dataIndex: 'realName', key: 'realName', width: 120 },
+  { title: '邮箱', dataIndex: 'email', key: 'email', width: 180 },
+  { title: '电话', dataIndex: 'phone', key: 'phone', width: 130 },
+  { title: '手机', dataIndex: 'mobile', key: 'mobile', width: 130 },
+  { title: '公司', dataIndex: 'company', key: 'company', width: 150 },
+  { title: '地址', dataIndex: 'address', key: 'address', ellipsis: true },
+  { title: '订阅开始', dataIndex: 'subscribeStartDate', key: 'subscribeStartDate', width: 120 },
+  { title: '订阅结束', dataIndex: 'subscribeEndDate', key: 'subscribeEndDate', width: 120 },
+  { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
+  { title: '操作', key: 'action', width: 180, fixed: 'right' as const },
+];
+
+async function fetchList() {
+  loading.value = true;
+  try {
+    const res = await publisherApi.getSubscriberList({
+      pageNum: pagination.current,
+      pageSize: pagination.pageSize,
+      ...searchForm,
+    });
+    dataSource.value = res.data?.rows ?? res.data ?? [];
+    pagination.total = res.data?.total ?? 0;
+  } finally {
+    loading.value = false;
+  }
+}
+
+function handleSearch() {
+  pagination.current = 1;
+  fetchList();
+}
+
+function handleReset() {
+  searchForm.realName = '';
+  searchForm.phone = '';
+  searchForm.status = undefined;
+  pagination.current = 1;
+  fetchList();
+}
+
+function handleAdd() {
+  isEdit.value = false;
+  modalTitle.value = '新增订户';
+  formData.realName = '';
+  formData.email = '';
+  formData.phone = '';
+  formData.mobile = '';
+  formData.address = '';
+  formData.company = '';
+  formData.subscribeStartDate = '';
+  formData.subscribeEndDate = '';
+  formData.status = '0';
+  modalVisible.value = true;
+}
+
+function handleEdit(record: PublisherApi.Subscriber) {
+  isEdit.value = true;
+  modalTitle.value = '编辑订户';
+  Object.assign(formData, record);
+  modalVisible.value = true;
+}
+
+async function handleDelete(record: PublisherApi.Subscriber) {
+  await publisherApi.deleteSubscriber([record.subscriberId!]);
+  message.success('删除成功');
+  fetchList();
+}
+
+async function handleSubmit() {
+  if (isEdit.value) {
+    await publisherApi.updateSubscriber({ ...formData });
+    message.success('编辑成功');
+  } else {
+    await publisherApi.createSubscriber({ ...formData });
+    message.success('新增成功');
+  }
+  modalVisible.value = false;
+  fetchList();
+}
+
+function handleTableChange(pag: { current: number; pageSize: number }) {
+  pagination.current = pag.current;
+  pagination.pageSize = pag.pageSize;
+  fetchList();
+}
+
+onMounted(() => {
+  fetchList();
+});
+</script>
+
+<template>
+  <div class="p-4">
+    <a-form layout="inline" class="mb-4">
+      <a-form-item label="姓名">
+        <a-input v-model:value="searchForm.realName" placeholder="请输入姓名" style="width: 160px" />
+      </a-form-item>
+      <a-form-item label="手机号">
+        <a-input v-model:value="searchForm.phone" placeholder="请输入手机号" style="width: 160px" />
+      </a-form-item>
+      <a-form-item label="状态">
+        <a-select v-model:value="searchForm.status" placeholder="请选择" allow-clear style="width: 120px">
+          <a-select-option value="0">启用</a-select-option>
+          <a-select-option value="1">停用</a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item>
+        <a-space>
+          <a-button type="primary" @click="handleSearch">查询</a-button>
+          <a-button @click="handleReset">重置</a-button>
+        </a-space>
+      </a-form-item>
+    </a-form>
+
+    <div class="mb-4">
+      <a-button type="primary" @click="handleAdd">新增订户</a-button>
+    </div>
+
+    <a-table
+      :columns="columns"
+      :data-source="dataSource"
+      :pagination="pagination"
+      :loading="loading"
+      row-key="subscriberId"
+      :scroll="{ x: 1400 }"
+      @change="handleTableChange"
+    >
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'status'">
+          <a-tag :color="record.status === '0' ? 'green' : 'red'">
+            {{ record.status === '0' ? '启用' : '停用' }}
+          </a-tag>
+        </template>
+        <template v-if="column.key === 'action'">
+          <a-space>
+            <a-button type="link" size="small" @click="handleEdit(record)">编辑</a-button>
+            <a-popconfirm title="确认删除该订户吗？" @confirm="handleDelete(record)">
+              <a-button type="link" size="small" danger>删除</a-button>
+            </a-popconfirm>
+          </a-space>
+        </template>
+      </template>
+    </a-table>
+
+    <a-modal v-model:open="modalVisible" :title="modalTitle" @ok="handleSubmit" destroy-on-close :width="560">
+      <a-form layout="vertical">
+        <a-form-item label="姓名" required>
+          <a-input v-model:value="formData.realName" placeholder="请输入姓名" />
+        </a-form-item>
+        <a-form-item label="邮箱">
+          <a-input v-model:value="formData.email" placeholder="请输入邮箱" />
+        </a-form-item>
+        <a-form-item label="电话">
+          <a-input v-model:value="formData.phone" placeholder="请输入电话" />
+        </a-form-item>
+        <a-form-item label="手机">
+          <a-input v-model:value="formData.mobile" placeholder="请输入手机号" />
+        </a-form-item>
+        <a-form-item label="公司">
+          <a-input v-model:value="formData.company" placeholder="请输入公司名称" />
+        </a-form-item>
+        <a-form-item label="地址">
+          <a-textarea v-model:value="formData.address" :rows="2" placeholder="请输入地址" />
+        </a-form-item>
+        <a-form-item label="订阅开始日期">
+          <a-date-picker v-model:value="formData.subscribeStartDate" style="width: 100%" />
+        </a-form-item>
+        <a-form-item label="订阅结束日期">
+          <a-date-picker v-model:value="formData.subscribeEndDate" style="width: 100%" />
+        </a-form-item>
+        <a-form-item label="状态">
+          <a-select v-model:value="formData.status">
+            <a-select-option value="0">启用</a-select-option>
+            <a-select-option value="1">停用</a-select-option>
+          </a-select>
+        </a-form-item>
+      </a-form>
+    </a-modal>
+  </div>
+</template>

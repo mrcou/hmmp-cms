@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+﻿<script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { SystemUserApi } from '#/api/system/user';
 
@@ -30,17 +30,17 @@ const placeholderDeptRootLabels = new Set(['根目录', '部门根目录', '全�
 
 const [FormModal, formModalApi] = useVbenModal({
   connectedComponent: Form,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [ResetPasswordModal, resetPasswordModalApi] = useVbenModal({
   connectedComponent: ResetPassword,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [ImportUserModal, importUserModalApi] = useVbenModal({
   connectedComponent: ImportModal,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const [Grid, gridApi] = useVbenVxeGrid({

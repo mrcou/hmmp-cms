@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.EditorManuscriptAuthorMapper">
+
+    <resultMap type="EditorManuscriptAuthor" id="EditorManuscriptAuthorResult">
+        <id property="id"            column="id"/>
+        <result property="manuscriptId"   column="manuscript_id"/>
+        <result property="authorId"       column="author_id"/>
+        <result property="authorName"     column="author_name"/>
+        <result property="authorSort"     column="author_sort"/>
+        <result property="isCorresponding" column="is_corresponding"/>
+        <result property="affiliation"    column="affiliation"/>
+        <result property="email"          column="email"/>
+        <result property="phone"          column="phone"/>
+        <result property="createTime"     column="create_time"/>
+    </resultMap>
+
+    <sql id="selectEditorManuscriptAuthorVo">
+        select id, manuscript_id, author_id, author_name, author_sort, is_corresponding, affiliation, email, phone, create_time
+        from editor_manuscript_author
+    </sql>
+
+    <select id="selectAuthorListByManuscriptId" parameterType="Long" resultMap="EditorManuscriptAuthorResult">
+        <include refid="selectEditorManuscriptAuthorVo"/>
+        where manuscript_id = #{manuscriptId}
+        order by author_sort asc
+    </select>
+
+    <select id="selectAuthorById" parameterType="Long" resultMap="EditorManuscriptAuthorResult">
+        <include refid="selectEditorManuscriptAuthorVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertAuthor" parameterType="EditorManuscriptAuthor" useGeneratedKeys="true" keyProperty="id">
+        insert into editor_manuscript_author
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="manuscriptId != null">manuscript_id,</if>
+            <if test="authorId != null">author_id,</if>
+            <if test="authorName != null and authorName != ''">author_name,</if>
+            <if test="authorSort != null">author_sort,</if>
+            <if test="isCorresponding != null">is_corresponding,</if>
+            <if test="affiliation != null">affiliation,</if>
+            <if test="email != null">email,</if>
+            <if test="phone != null">phone,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="manuscriptId != null">#{manuscriptId},</if>
+            <if test="authorId != null">#{authorId},</if>
+            <if test="authorName != null and authorName != ''">#{authorName},</if>
+            <if test="authorSort != null">#{authorSort},</if>
+            <if test="isCorresponding != null">#{isCorresponding},</if>
+            <if test="affiliation != null">#{affiliation},</if>
+            <if test="email != null">#{email},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <insert id="batchInsertAuthor">
+        insert into editor_manuscript_author (manuscript_id, author_id, author_name, author_sort, is_corresponding, affiliation, email, phone, create_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.manuscriptId}, #{item.authorId}, #{item.authorName}, #{item.authorSort}, #{item.isCorresponding}, #{item.affiliation}, #{item.email}, #{item.phone}, #{item.createTime})
+        </foreach>
+    </insert>
+
+    <update id="updateAuthor" parameterType="EditorManuscriptAuthor">
+        update editor_manuscript_author
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="authorId != null">author_id = #{authorId},</if>
+            <if test="authorName != null and authorName != ''">author_name = #{authorName},</if>
+            <if test="authorSort != null">author_sort = #{authorSort},</if>
+            <if test="isCorresponding != null">is_corresponding = #{isCorresponding},</if>
+            <if test="affiliation != null">affiliation = #{affiliation},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteAuthorById" parameterType="Long">
+        delete from editor_manuscript_author where id = #{id}
+    </delete>
+
+    <delete id="deleteAuthorByManuscriptId" parameterType="Long">
+        delete from editor_manuscript_author where manuscript_id = #{manuscriptId}
+    </delete>
+
+</mapper>

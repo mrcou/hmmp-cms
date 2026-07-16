@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.meeting.MeetingTravelWayMapper">
+
+    <resultMap type="MeetingTravelWay" id="MeetingTravelWayResult">
+        <id     property="wayId"        column="way_id"        />
+        <result property="meetingId"    column="meeting_id"    />
+        <result property="wayName"      column="way_name"      />
+        <result property="description"  column="description"   />
+        <result property="price"        column="price"         />
+        <result property="startDate"    column="start_date"    />
+        <result property="endDate"      column="end_date"      />
+        <result property="maxPeople"    column="max_people"    />
+        <result property="status"       column="status"        />
+        <result property="createTime"   column="create_time"   />
+    </resultMap>
+
+    <sql id="selectTravelWayVo">
+        select way_id, meeting_id, way_name, description, price, start_date, end_date, max_people, status, create_time
+        from meeting_travel_way
+    </sql>
+
+    <select id="selectTravelWayList" parameterType="MeetingTravelWay" resultMap="MeetingTravelWayResult">
+        <include refid="selectTravelWayVo"/>
+        <where>
+            <if test="meetingId != null">AND meeting_id = #{meetingId}</if>
+            <if test="wayName != null and wayName != ''">AND way_name like concat('%', #{wayName}, '%')</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectTravelWayById" parameterType="Long" resultMap="MeetingTravelWayResult">
+        <include refid="selectTravelWayVo"/>
+        where way_id = #{wayId}
+    </select>
+
+    <insert id="insertTravelWay" parameterType="MeetingTravelWay" useGeneratedKeys="true" keyProperty="wayId">
+        insert into meeting_travel_way(
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="wayName != null and wayName != ''">way_name,</if>
+            <if test="description != null">description,</if>
+            <if test="price != null">price,</if>
+            <if test="startDate != null">start_date,</if>
+            <if test="endDate != null">end_date,</if>
+            <if test="maxPeople != null">max_people,</if>
+            <if test="status != null">status,</if>
+            create_time
+        )values(
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="wayName != null and wayName != ''">#{wayName},</if>
+            <if test="description != null">#{description},</if>
+            <if test="price != null">#{price},</if>
+            <if test="startDate != null">#{startDate},</if>
+            <if test="endDate != null">#{endDate},</if>
+            <if test="maxPeople != null">#{maxPeople},</if>
+            <if test="status != null">#{status},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTravelWay" parameterType="MeetingTravelWay">
+        update meeting_travel_way
+        <set>
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="wayName != null and wayName != ''">way_name = #{wayName},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="maxPeople != null">max_people = #{maxPeople},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        where way_id = #{wayId}
+    </update>
+
+    <delete id="deleteTravelWayById" parameterType="Long">
+        delete from meeting_travel_way where way_id = #{wayId}
+    </delete>
+
+    <delete id="deleteTravelWayByIds" parameterType="Long">
+        delete from meeting_travel_way where way_id in
+        <foreach collection="array" item="wayId" open="(" separator="," close=")">
+            #{wayId}
+        </foreach>
+    </delete>
+
+</mapper>

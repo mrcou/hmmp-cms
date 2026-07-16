@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+﻿<script lang="ts" setup>
 import type { NotificationItem } from '@vben/layouts';
 import type { SystemNoticeApi } from '#/api/system/notice';
 
@@ -160,7 +160,7 @@ function handleNotificationOpenChange(open: boolean) {
 
 const [NoticePreviewModal, noticePreviewModalApi] = useVbenModal({
   connectedComponent: NoticePreview,
-  destroyOnClose: true,
+  destroyOnHidden: true,
 });
 
 const handleClick = (item: NotificationItem) => {

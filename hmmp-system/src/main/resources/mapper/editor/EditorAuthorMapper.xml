@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.EditorAuthorMapper">
+
+    <resultMap type="EditorAuthor" id="EditorAuthorResult">
+        <id     property="authorId"         column="author_id"          />
+        <result property="userId"           column="user_id"            />
+        <result property="realName"         column="real_name"          />
+        <result property="penName"          column="pen_name"           />
+        <result property="gender"           column="gender"             />
+        <result property="birthday"         column="birthday"           />
+        <result property="nationality"      column="nationality"        />
+        <result property="affiliation"      column="affiliation"        />
+        <result property="department"       column="department"         />
+        <result property="title"            column="title"              />
+        <result property="academicDegree"   column="academic_degree"    />
+        <result property="researchDirection" column="research_direction"/>
+        <result property="email"            column="email"              />
+        <result property="phone"            column="phone"              />
+        <result property="mobile"           column="mobile"             />
+        <result property="address"          column="address"            />
+        <result property="zipCode"          column="zip_code"           />
+        <result property="idCard"           column="id_card"            />
+        <result property="workNo"           column="work_no"            />
+        <result property="status"           column="status"             />
+        <result property="isDeleted"        column="is_deleted"         />
+        <result property="deleteTime"       column="delete_time"        />
+        <result property="createBy"         column="create_by"          />
+        <result property="createTime"       column="create_time"        />
+        <result property="updateBy"         column="update_by"          />
+        <result property="updateTime"       column="update_time"        />
+        <result property="remark"           column="remark"             />
+    </resultMap>
+
+    <sql id="selectEditorAuthorVo">
+        select author_id, user_id, real_name, pen_name, gender, birthday, nationality,
+               affiliation, department, title, academic_degree, research_direction,
+               email, phone, mobile, address, zip_code, id_card, work_no, status,
+               is_deleted, delete_time, create_by, create_time, update_by, update_time, remark
+        from editor_author
+    </sql>
+
+    <select id="selectAuthorList" parameterType="EditorAuthor" resultMap="EditorAuthorResult">
+        <include refid="selectEditorAuthorVo"/>
+        <where>
+            <if test="realName != null and realName != ''">AND real_name like concat('%', #{realName}, '%')</if>
+            <if test="email != null and email != ''">AND email like concat('%', #{email}, '%')</if>
+            <if test="affiliation != null and affiliation != ''">AND affiliation like concat('%', #{affiliation}, '%')</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+            <if test="isDeleted != null and isDeleted != ''">AND is_deleted = #{isDeleted}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectAuthorById" parameterType="Long" resultMap="EditorAuthorResult">
+        <include refid="selectEditorAuthorVo"/>
+        where author_id = #{authorId}
+    </select>
+
+    <select id="selectAuthorByUserId" parameterType="Long" resultMap="EditorAuthorResult">
+        <include refid="selectEditorAuthorVo"/>
+        where user_id = #{userId}
+    </select>
+
+    <select id="selectAuthorByEmail" parameterType="String" resultMap="EditorAuthorResult">
+        <include refid="selectEditorAuthorVo"/>
+        where email = #{email}
+    </select>
+
+    <insert id="insertAuthor" parameterType="EditorAuthor" useGeneratedKeys="true" keyProperty="authorId">
+        insert into editor_author (
+            user_id, real_name, pen_name, gender, birthday, nationality,
+            affiliation, department, title, academic_degree, research_direction,
+            email, phone, mobile, address, zip_code, id_card, work_no, status,
+            is_deleted, delete_time, create_by, create_time, update_by, update_time, remark
+        ) values (
+            #{userId}, #{realName}, #{penName}, #{gender}, #{birthday}, #{nationality},
+            #{affiliation}, #{department}, #{title}, #{academicDegree}, #{researchDirection},
+            #{email}, #{phone}, #{mobile}, #{address}, #{zipCode}, #{idCard}, #{workNo}, #{status},
+            #{isDeleted}, #{deleteTime}, #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark}
+        )
+    </insert>
+
+    <update id="updateAuthor" parameterType="EditorAuthor">
+        update editor_author
+        <set>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="penName != null">pen_name = #{penName},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="birthday != null">birthday = #{birthday},</if>
+            <if test="nationality != null">nationality = #{nationality},</if>
+            <if test="affiliation != null">affiliation = #{affiliation},</if>
+            <if test="department != null">department = #{department},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="academicDegree != null">academic_degree = #{academicDegree},</if>
+            <if test="researchDirection != null">research_direction = #{researchDirection},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="mobile != null">mobile = #{mobile},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="zipCode != null">zip_code = #{zipCode},</if>
+            <if test="idCard != null">id_card = #{idCard},</if>
+            <if test="workNo != null">work_no = #{workNo},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="deleteTime != null">delete_time = #{deleteTime},</if>
+            update_by = #{updateBy},
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        where author_id = #{authorId}
+    </update>
+
+    <update id="updateAuthorStatus" parameterType="EditorAuthor">
+        update editor_author set status = #{status}, update_by = #{updateBy}, update_time = sysdate()
+        where author_id = #{authorId}
+    </update>
+
+    <delete id="deleteAuthorById" parameterType="Long">
+        update editor_author set is_deleted = '2', delete_time = sysdate() where author_id = #{authorId}
+    </delete>
+
+    <delete id="deleteAuthorByIds" parameterType="Long">
+        update editor_author set is_deleted = '2', delete_time = sysdate() where author_id in
+        <foreach collection="array" item="authorId" open="(" separator="," close=")">
+            #{authorId}
+        </foreach>
+    </delete>
+
+</mapper>

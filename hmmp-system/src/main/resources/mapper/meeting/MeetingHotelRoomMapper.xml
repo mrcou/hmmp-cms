@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.meeting.MeetingHotelRoomMapper">
+
+    <resultMap type="MeetingHotelRoom" id="MeetingHotelRoomResult">
+        <id     property="roomId"        column="room_id"        />
+        <result property="hotelId"       column="hotel_id"       />
+        <result property="roomType"      column="room_type"      />
+        <result property="price"         column="price"          />
+        <result property="maxPeople"     column="max_people"     />
+        <result property="totalQty"      column="total_qty"      />
+        <result property="availableQty"  column="available_qty"  />
+        <result property="description"   column="description"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectRoomVo">
+        select room_id, hotel_id, room_type, price, max_people, total_qty, available_qty, description, create_time
+        from meeting_hotel_room
+    </sql>
+
+    <select id="selectRoomList" parameterType="MeetingHotelRoom" resultMap="MeetingHotelRoomResult">
+        <include refid="selectRoomVo"/>
+        <where>
+            <if test="hotelId != null">AND hotel_id = #{hotelId}</if>
+            <if test="roomType != null and roomType != ''">AND room_type like concat('%', #{roomType}, '%')</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectRoomById" parameterType="Long" resultMap="MeetingHotelRoomResult">
+        <include refid="selectRoomVo"/>
+        where room_id = #{roomId}
+    </select>
+
+    <insert id="insertRoom" parameterType="MeetingHotelRoom" useGeneratedKeys="true" keyProperty="roomId">
+        insert into meeting_hotel_room(
+            <if test="hotelId != null">hotel_id,</if>
+            <if test="roomType != null and roomType != ''">room_type,</if>
+            <if test="price != null">price,</if>
+            <if test="maxPeople != null">max_people,</if>
+            <if test="totalQty != null">total_qty,</if>
+            <if test="availableQty != null">available_qty,</if>
+            <if test="description != null">description,</if>
+            create_time
+        )values(
+            <if test="hotelId != null">#{hotelId},</if>
+            <if test="roomType != null and roomType != ''">#{roomType},</if>
+            <if test="price != null">#{price},</if>
+            <if test="maxPeople != null">#{maxPeople},</if>
+            <if test="totalQty != null">#{totalQty},</if>
+            <if test="availableQty != null">#{availableQty},</if>
+            <if test="description != null">#{description},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateRoom" parameterType="MeetingHotelRoom">
+        update meeting_hotel_room
+        <set>
+            <if test="hotelId != null">hotel_id = #{hotelId},</if>
+            <if test="roomType != null and roomType != ''">room_type = #{roomType},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="maxPeople != null">max_people = #{maxPeople},</if>
+            <if test="totalQty != null">total_qty = #{totalQty},</if>
+            <if test="availableQty != null">available_qty = #{availableQty},</if>
+            <if test="description != null">description = #{description},</if>
+        </set>
+        where room_id = #{roomId}
+    </update>
+
+    <delete id="deleteRoomById" parameterType="Long">
+        delete from meeting_hotel_room where room_id = #{roomId}
+    </delete>
+
+    <delete id="deleteRoomByIds" parameterType="Long">
+        delete from meeting_hotel_room where room_id in
+        <foreach collection="array" item="roomId" open="(" separator="," close=")">
+            #{roomId}
+        </foreach>
+    </delete>
+
+</mapper>

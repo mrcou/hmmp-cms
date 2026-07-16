@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.EditorEditMapper">
+
+    <resultMap type="EditorEdit" id="EditorEditResult">
+        <id     property="editId"            column="edit_id"             />
+        <result property="manuscriptId"      column="manuscript_id"       />
+        <result property="editorId"          column="editor_id"           />
+        <result property="editorName"        column="editor_name"         />
+        <result property="editStatus"        column="edit_status"         />
+        <result property="editStartTime"     column="edit_start_time"     />
+        <result property="editEndTime"       column="edit_end_time"       />
+        <result property="editContent"       column="edit_content"        />
+        <result property="editSuggestion"    column="edit_suggestion"     />
+        <result property="formatCheck"       column="format_check"        />
+        <result property="wordCountBefore"   column="word_count_before"   />
+        <result property="wordCountAfter"    column="word_count_after"    />
+        <result property="version"           column="version"             />
+        <result property="createBy"          column="create_by"           />
+        <result property="createTime"        column="create_time"         />
+        <result property="updateBy"          column="update_by"           />
+        <result property="updateTime"        column="update_time"         />
+    </resultMap>
+
+    <sql id="selectEditorEditVo">
+        select edit_id, manuscript_id, editor_id, editor_name, edit_status,
+               edit_start_time, edit_end_time, edit_content, edit_suggestion, format_check,
+               word_count_before, word_count_after, version,
+               create_by, create_time, update_by, update_time
+        from editor_edit
+    </sql>
+
+    <select id="selectEditList" parameterType="EditorEdit" resultMap="EditorEditResult">
+        <include refid="selectEditorEditVo"/>
+        <where>
+            <if test="manuscriptId != null">AND manuscript_id = #{manuscriptId}</if>
+            <if test="editorId != null">AND editor_id = #{editorId}</if>
+            <if test="editStatus != null and editStatus != ''">AND edit_status = #{editStatus}</if>
+        </where>
+        order by edit_start_time desc
+    </select>
+
+    <select id="selectEditById" parameterType="Long" resultMap="EditorEditResult">
+        <include refid="selectEditorEditVo"/>
+        where edit_id = #{editId}
+    </select>
+
+    <select id="selectEditByManuscriptId" parameterType="Long" resultMap="EditorEditResult">
+        <include refid="selectEditorEditVo"/>
+        where manuscript_id = #{manuscriptId}
+    </select>
+
+    <insert id="insertEdit" parameterType="EditorEdit" useGeneratedKeys="true" keyProperty="editId">
+        insert into editor_edit (
+            manuscript_id, editor_id, editor_name, edit_status,
+            edit_start_time, edit_end_time, edit_content, edit_suggestion, format_check,
+            word_count_before, word_count_after, version,
+            create_by, create_time, update_by, update_time
+        ) values (
+            #{manuscriptId}, #{editorId}, #{editorName}, #{editStatus},
+            #{editStartTime}, #{editEndTime}, #{editContent}, #{editSuggestion}, #{formatCheck},
+            #{wordCountBefore}, #{wordCountAfter}, #{version},
+            #{createBy}, sysdate(), #{updateBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateEdit" parameterType="EditorEdit">
+        update editor_edit
+        <set>
+            <if test="editStatus != null">edit_status = #{editStatus},</if>
+            <if test="editStartTime != null">edit_start_time = #{editStartTime},</if>
+            <if test="editEndTime != null">edit_end_time = #{editEndTime},</if>
+            <if test="editContent != null">edit_content = #{editContent},</if>
+            <if test="editSuggestion != null">edit_suggestion = #{editSuggestion},</if>
+            <if test="formatCheck != null">format_check = #{formatCheck},</if>
+            <if test="wordCountBefore != null">word_count_before = #{wordCountBefore},</if>
+            <if test="wordCountAfter != null">word_count_after = #{wordCountAfter},</if>
+            <if test="version != null">version = #{version},</if>
+            update_by = #{updateBy},
+            update_time = sysdate()
+        </set>
+        where edit_id = #{editId}
+    </update>
+
+    <update id="updateEditStatus" parameterType="EditorEdit">
+        update editor_edit set edit_status = #{editStatus}, update_by = #{updateBy}, update_time = sysdate()
+        where edit_id = #{editId}
+    </update>
+
+    <delete id="deleteEditById" parameterType="Long">
+        delete from editor_edit where edit_id = #{editId}
+    </delete>
+
+    <delete id="deleteEditByIds" parameterType="Long">
+        delete from editor_edit where edit_id in
+        <foreach collection="array" item="editId" open="(" separator="," close=")">
+            #{editId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherPushKeywordMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherPushKeyword" id="PublisherPushKeywordResult">
+        <id     property="pushId"        column="push_id"          />
+        <result property="keyword"       column="keyword"          />
+        <result property="pushContent"   column="push_content"     />
+        <result property="pushTime"      column="push_time"        />
+        <result property="pushStatus"    column="push_status"      />
+        <result property="pushCount"     column="push_count"       />
+        <result property="successCount"  column="success_count"    />
+        <result property="failCount"     column="fail_count"       />
+        <result property="createBy"      column="create_by"        />
+        <result property="createTime"    column="create_time"      />
+    </resultMap>
+
+    <sql id="selectPublisherPushKeywordVo">
+        select push_id, keyword, push_content, push_time, push_status, push_count, success_count, fail_count,
+               create_by, create_time
+        from publisher_push_keyword
+    </sql>
+
+    <select id="selectPushKeywordList" parameterType="com.hmmp.system.domain.publisher.PublisherPushKeyword" resultMap="PublisherPushKeywordResult">
+        <include refid="selectPublisherPushKeywordVo"/>
+        <where>
+            <if test="keyword != null and keyword != ''">AND keyword like concat('%', #{keyword}, '%')</if>
+            <if test="pushStatus != null and pushStatus != ''">AND push_status = #{pushStatus}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectPushKeywordById" parameterType="Long" resultMap="PublisherPushKeywordResult">
+        <include refid="selectPublisherPushKeywordVo"/>
+        where push_id = #{pushId}
+    </select>
+
+    <insert id="insertPushKeyword" parameterType="com.hmmp.system.domain.publisher.PublisherPushKeyword" useGeneratedKeys="true" keyProperty="pushId">
+        insert into publisher_push_keyword (
+            keyword, push_content, push_time, push_status, push_count, success_count, fail_count,
+            create_by, create_time
+        ) values (
+            #{keyword}, #{pushContent}, #{pushTime}, #{pushStatus}, #{pushCount}, #{successCount}, #{failCount},
+            #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updatePushKeyword" parameterType="com.hmmp.system.domain.publisher.PublisherPushKeyword">
+        update publisher_push_keyword
+        <set>
+            <if test="keyword != null">keyword = #{keyword},</if>
+            <if test="pushContent != null">push_content = #{pushContent},</if>
+            <if test="pushTime != null">push_time = #{pushTime},</if>
+            <if test="pushStatus != null">push_status = #{pushStatus},</if>
+            <if test="pushCount != null">push_count = #{pushCount},</if>
+            <if test="successCount != null">success_count = #{successCount},</if>
+            <if test="failCount != null">fail_count = #{failCount},</if>
+        </set>
+        where push_id = #{pushId}
+    </update>
+
+    <delete id="deletePushKeywordById" parameterType="Long">
+        delete from publisher_push_keyword where push_id = #{pushId}
+    </delete>
+
+    <delete id="deletePushKeywordByIds" parameterType="Long">
+        delete from publisher_push_keyword where push_id in
+        <foreach collection="array" item="pushId" open="(" separator="," close=")">
+            #{pushId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -49,6 +49,7 @@
     "sass": "catalog:",
     "sass-embedded": "catalog:",
     "tailwindcss": "catalog:",
+    "tsdown": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vue-tsc": "catalog:"

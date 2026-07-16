@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.StatSiteAccessMapper">
+
+    <resultMap type="StatSiteAccess" id="StatSiteAccessResult">
+        <id     property="accessId"    column="access_id"     />
+        <result property="userId"      column="user_id"       />
+        <result property="userName"    column="user_name"     />
+        <result property="pageUrl"     column="page_url"      />
+        <result property="pageName"    column="page_name"     />
+        <result property="refererUrl"  column="referer_url"   />
+        <result property="ipAddr"      column="ip_addr"       />
+        <result property="browser"     column="browser"       />
+        <result property="os"          column="os"            />
+        <result property="accessTime"  column="access_time"   />
+        <result property="stayTime"    column="stay_time"     />
+        <result property="createBy"    column="create_by"     />
+        <result property="createTime"  column="create_time"   />
+    </resultMap>
+
+    <sql id="selectStatSiteAccessVo">
+        select access_id, user_id, user_name, page_url, page_name, referer_url,
+               ip_addr, browser, os, access_time, stay_time, create_by, create_time
+        from stat_site_access
+    </sql>
+
+    <select id="selectStatSiteAccessList" parameterType="StatSiteAccess" resultMap="StatSiteAccessResult">
+        <include refid="selectStatSiteAccessVo"/>
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="userName != null and userName != ''">
+                AND user_name like concat('%', #{userName}, '%')
+            </if>
+            <if test="pageUrl != null and pageUrl != ''">
+                AND page_url like concat('%', #{pageUrl}, '%')
+            </if>
+            <if test="pageName != null and pageName != ''">
+                AND page_name like concat('%', #{pageName}, '%')
+            </if>
+            <if test="ipAddr != null and ipAddr != ''">
+                AND ip_addr = #{ipAddr}
+            </if>
+            <if test="accessTime != null">
+                AND access_time = #{accessTime}
+            </if>
+        </where>
+        order by access_time desc
+    </select>
+
+    <select id="selectStatSiteAccessById" parameterType="Long" resultMap="StatSiteAccessResult">
+        <include refid="selectStatSiteAccessVo"/>
+        where access_id = #{accessId}
+    </select>
+
+    <insert id="insertStatSiteAccess" parameterType="StatSiteAccess" useGeneratedKeys="true" keyProperty="accessId">
+        insert into stat_site_access
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="userName != null">user_name,</if>
+            <if test="pageUrl != null">page_url,</if>
+            <if test="pageName != null">page_name,</if>
+            <if test="refererUrl != null">referer_url,</if>
+            <if test="ipAddr != null">ip_addr,</if>
+            <if test="browser != null">browser,</if>
+            <if test="os != null">os,</if>
+            <if test="accessTime != null">access_time,</if>
+            <if test="stayTime != null">stay_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="userName != null">#{userName},</if>
+            <if test="pageUrl != null">#{pageUrl},</if>
+            <if test="pageName != null">#{pageName},</if>
+            <if test="refererUrl != null">#{refererUrl},</if>
+            <if test="ipAddr != null">#{ipAddr},</if>
+            <if test="browser != null">#{browser},</if>
+            <if test="os != null">#{os},</if>
+            <if test="accessTime != null">#{accessTime},</if>
+            <if test="stayTime != null">#{stayTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateStatSiteAccess" parameterType="StatSiteAccess">
+        update stat_site_access
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="userName != null">user_name = #{userName},</if>
+            <if test="pageUrl != null">page_url = #{pageUrl},</if>
+            <if test="pageName != null">page_name = #{pageName},</if>
+            <if test="refererUrl != null">referer_url = #{refererUrl},</if>
+            <if test="ipAddr != null">ip_addr = #{ipAddr},</if>
+            <if test="browser != null">browser = #{browser},</if>
+            <if test="os != null">os = #{os},</if>
+            <if test="accessTime != null">access_time = #{accessTime},</if>
+            <if test="stayTime != null">stay_time = #{stayTime},</if>
+        </trim>
+        where access_id = #{accessId}
+    </update>
+
+    <delete id="deleteStatSiteAccessById" parameterType="Long">
+        delete from stat_site_access where access_id = #{accessId}
+    </delete>
+
+    <delete id="deleteStatSiteAccessByIds" parameterType="String">
+        delete from stat_site_access where access_id in
+        <foreach item="accessId" collection="array" open="(" separator="," close=")">
+            #{accessId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherSubscriberMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherSubscriber" id="PublisherSubscriberResult">
+        <id     property="subscriberId"        column="subscriber_id"         />
+        <result property="readerId"            column="reader_id"             />
+        <result property="realName"            column="real_name"             />
+        <result property="email"               column="email"                 />
+        <result property="phone"               column="phone"                 />
+        <result property="mobile"              column="mobile"                />
+        <result property="address"             column="address"               />
+        <result property="zipCode"             column="zip_code"              />
+        <result property="company"             column="company"               />
+        <result property="subscribeStartDate"  column="subscribe_start_date"  />
+        <result property="subscribeEndDate"    column="subscribe_end_date"    />
+        <result property="status"              column="status"                />
+        <result property="createBy"            column="create_by"             />
+        <result property="createTime"          column="create_time"           />
+        <result property="updateBy"            column="update_by"             />
+        <result property="updateTime"          column="update_time"           />
+        <result property="remark"              column="remark"                />
+    </resultMap>
+
+    <sql id="selectPublisherSubscriberVo">
+        select subscriber_id, reader_id, real_name, email, phone, mobile, address, zip_code, company,
+               subscribe_start_date, subscribe_end_date, status, create_by, create_time, update_by, update_time, remark
+        from publisher_subscriber
+    </sql>
+
+    <select id="selectSubscriberList" parameterType="com.hmmp.system.domain.publisher.PublisherSubscriber" resultMap="PublisherSubscriberResult">
+        <include refid="selectPublisherSubscriberVo"/>
+        <where>
+            <if test="readerId != null">AND reader_id = #{readerId}</if>
+            <if test="realName != null and realName != ''">AND real_name like concat('%', #{realName}, '%')</if>
+            <if test="email != null and email != ''">AND email like concat('%', #{email}, '%')</if>
+            <if test="company != null and company != ''">AND company like concat('%', #{company}, '%')</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectSubscriberById" parameterType="Long" resultMap="PublisherSubscriberResult">
+        <include refid="selectPublisherSubscriberVo"/>
+        where subscriber_id = #{subscriberId}
+    </select>
+
+    <insert id="insertSubscriber" parameterType="com.hmmp.system.domain.publisher.PublisherSubscriber" useGeneratedKeys="true" keyProperty="subscriberId">
+        insert into publisher_subscriber (
+            reader_id, real_name, email, phone, mobile, address, zip_code, company,
+            subscribe_start_date, subscribe_end_date, status, create_by, create_time, update_by, update_time, remark
+        ) values (
+            #{readerId}, #{realName}, #{email}, #{phone}, #{mobile}, #{address}, #{zipCode}, #{company},
+            #{subscribeStartDate}, #{subscribeEndDate}, #{status}, #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark}
+        )
+    </insert>
+
+    <update id="updateSubscriber" parameterType="com.hmmp.system.domain.publisher.PublisherSubscriber">
+        update publisher_subscriber
+        <set>
+            <if test="readerId != null">reader_id = #{readerId},</if>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="mobile != null">mobile = #{mobile},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="zipCode != null">zip_code = #{zipCode},</if>
+            <if test="company != null">company = #{company},</if>
+            <if test="subscribeStartDate != null">subscribe_start_date = #{subscribeStartDate},</if>
+            <if test="subscribeEndDate != null">subscribe_end_date = #{subscribeEndDate},</if>
+            <if test="status != null">status = #{status},</if>
+            update_by = #{updateBy},
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        where subscriber_id = #{subscriberId}
+    </update>
+
+    <update id="updateSubscriberStatus" parameterType="com.hmmp.system.domain.publisher.PublisherSubscriber">
+        update publisher_subscriber set status = #{status}, update_by = #{updateBy}, update_time = sysdate()
+        where subscriber_id = #{subscriberId}
+    </update>
+
+    <delete id="deleteSubscriberById" parameterType="Long">
+        delete from publisher_subscriber where subscriber_id = #{subscriberId}
+    </delete>
+
+    <delete id="deleteSubscriberByIds" parameterType="Long">
+        delete from publisher_subscriber where subscriber_id in
+        <foreach collection="array" item="subscriberId" open="(" separator="," close=")">
+            #{subscriberId}
+        </foreach>
+    </delete>
+
+</mapper>

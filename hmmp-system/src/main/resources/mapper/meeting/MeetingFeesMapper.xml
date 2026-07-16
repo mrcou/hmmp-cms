@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.meeting.MeetingFeesMapper">
+
+    <resultMap type="MeetingFees" id="MeetingFeesResult">
+        <id     property="feeId"          column="fee_id"           />
+        <result property="meetingId"      column="meeting_id"       />
+        <result property="userId"         column="user_id"          />
+        <result property="feeType"        column="fee_type"         />
+        <result property="amount"         column="amount"           />
+        <result property="paymentMethod"  column="payment_method"   />
+        <result property="paymentStatus"  column="payment_status"   />
+        <result property="paymentTime"    column="payment_time"     />
+        <result property="remark"         column="remark"           />
+        <result property="createTime"     column="create_time"      />
+    </resultMap>
+
+    <sql id="selectFeesVo">
+        select fee_id, meeting_id, user_id, fee_type, amount, payment_method, payment_status, payment_time, remark, create_time
+        from meeting_fees
+    </sql>
+
+    <select id="selectFeesList" parameterType="MeetingFees" resultMap="MeetingFeesResult">
+        <include refid="selectFeesVo"/>
+        <where>
+            <if test="meetingId != null">AND meeting_id = #{meetingId}</if>
+            <if test="userId != null">AND user_id = #{userId}</if>
+            <if test="feeType != null and feeType != ''">AND fee_type = #{feeType}</if>
+            <if test="paymentStatus != null and paymentStatus != ''">AND payment_status = #{paymentStatus}</if>
+            <if test="paymentMethod != null and paymentMethod != ''">AND payment_method = #{paymentMethod}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectFeesById" parameterType="Long" resultMap="MeetingFeesResult">
+        <include refid="selectFeesVo"/>
+        where fee_id = #{feeId}
+    </select>
+
+    <insert id="insertFees" parameterType="MeetingFees" useGeneratedKeys="true" keyProperty="feeId">
+        insert into meeting_fees(
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="feeType != null">fee_type,</if>
+            <if test="amount != null">amount,</if>
+            <if test="paymentMethod != null">payment_method,</if>
+            <if test="paymentStatus != null">payment_status,</if>
+            <if test="paymentTime != null">payment_time,</if>
+            <if test="remark != null">remark,</if>
+            create_time
+        )values(
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="feeType != null">#{feeType},</if>
+            <if test="amount != null">#{amount},</if>
+            <if test="paymentMethod != null">#{paymentMethod},</if>
+            <if test="paymentStatus != null">#{paymentStatus},</if>
+            <if test="paymentTime != null">#{paymentTime},</if>
+            <if test="remark != null">#{remark},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateFees" parameterType="MeetingFees">
+        update meeting_fees
+        <set>
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="feeType != null">fee_type = #{feeType},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="paymentMethod != null">payment_method = #{paymentMethod},</if>
+            <if test="paymentStatus != null">payment_status = #{paymentStatus},</if>
+            <if test="paymentTime != null">payment_time = #{paymentTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        where fee_id = #{feeId}
+    </update>
+
+    <delete id="deleteFeesById" parameterType="Long">
+        delete from meeting_fees where fee_id = #{feeId}
+    </delete>
+
+    <delete id="deleteFeesByIds" parameterType="Long">
+        delete from meeting_fees where fee_id in
+        <foreach collection="array" item="feeId" open="(" separator="," close=")">
+            #{feeId}
+        </foreach>
+    </delete>
+
+</mapper>

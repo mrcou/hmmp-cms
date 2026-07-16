@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.EditorReviewerApplyMapper">
+
+    <resultMap type="EditorReviewerApply" id="EditorReviewerApplyResult">
+        <id     property="applyId"          column="apply_id"            />
+        <result property="userId"           column="user_id"             />
+        <result property="applyType"        column="apply_type"          />
+        <result property="recommenderId"    column="recommender_id"      />
+        <result property="recommenderName"  column="recommender_name"    />
+        <result property="realName"         column="real_name"           />
+        <result property="affiliation"      column="affiliation"         />
+        <result property="title"            column="title"               />
+        <result property="researchDirection" column="research_direction" />
+        <result property="expertiseFields"  column="expertise_fields"    />
+        <result property="email"            column="email"               />
+        <result property="phone"            column="phone"               />
+        <result property="applyReason"      column="apply_reason"        />
+        <result property="auditStatus"      column="audit_status"        />
+        <result property="auditOpinion"     column="audit_opinion"       />
+        <result property="auditTime"        column="audit_time"          />
+        <result property="auditBy"          column="audit_by"            />
+        <result property="isDeleted"        column="is_deleted"          />
+        <result property="createTime"       column="create_time"         />
+        <result property="updateTime"       column="update_time"         />
+    </resultMap>
+
+    <sql id="selectEditorReviewerApplyVo">
+        select apply_id, user_id, apply_type, recommender_id, recommender_name,
+               real_name, affiliation, title, research_direction, expertise_fields,
+               email, phone, apply_reason, audit_status, audit_opinion,
+               audit_time, audit_by, is_deleted, create_time, update_time
+        from editor_reviewer_apply
+    </sql>
+
+    <select id="selectApplyList" parameterType="EditorReviewerApply" resultMap="EditorReviewerApplyResult">
+        <include refid="selectEditorReviewerApplyVo"/>
+        <where>
+            <if test="applyType != null and applyType != ''">AND apply_type = #{applyType}</if>
+            <if test="auditStatus != null and auditStatus != ''">AND audit_status = #{auditStatus}</if>
+            <if test="realName != null and realName != ''">AND real_name like concat('%', #{realName}, '%')</if>
+            <if test="email != null and email != ''">AND email like concat('%', #{email}, '%')</if>
+            <if test="isDeleted != null and isDeleted != ''">AND is_deleted = #{isDeleted}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectApplyById" parameterType="Long" resultMap="EditorReviewerApplyResult">
+        <include refid="selectEditorReviewerApplyVo"/>
+        where apply_id = #{applyId}
+    </select>
+
+    <select id="selectApplyByUserId" parameterType="Long" resultMap="EditorReviewerApplyResult">
+        <include refid="selectEditorReviewerApplyVo"/>
+        where user_id = #{userId}
+    </select>
+
+    <insert id="insertApply" parameterType="EditorReviewerApply" useGeneratedKeys="true" keyProperty="applyId">
+        insert into editor_reviewer_apply (
+            user_id, apply_type, recommender_id, recommender_name,
+            real_name, affiliation, title, research_direction, expertise_fields,
+            email, phone, apply_reason, audit_status, audit_opinion,
+            audit_time, audit_by, is_deleted, create_time, update_time
+        ) values (
+            #{userId}, #{applyType}, #{recommenderId}, #{recommenderName},
+            #{realName}, #{affiliation}, #{title}, #{researchDirection}, #{expertiseFields},
+            #{email}, #{phone}, #{applyReason}, #{auditStatus}, #{auditOpinion},
+            #{auditTime}, #{auditBy}, #{isDeleted}, sysdate(), sysdate()
+        )
+    </insert>
+
+    <update id="updateApply" parameterType="EditorReviewerApply">
+        update editor_reviewer_apply
+        <set>
+            <if test="auditStatus != null">audit_status = #{auditStatus},</if>
+            <if test="auditOpinion != null">audit_opinion = #{auditOpinion},</if>
+            <if test="auditTime != null">audit_time = #{auditTime},</if>
+            <if test="auditBy != null">audit_by = #{auditBy},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            update_time = sysdate()
+        </set>
+        where apply_id = #{applyId}
+    </update>
+
+    <update id="updateApplyStatus" parameterType="EditorReviewerApply">
+        update editor_reviewer_apply set audit_status = #{auditStatus}, update_time = sysdate()
+        where apply_id = #{applyId}
+    </update>
+
+    <delete id="deleteApplyById" parameterType="Long">
+        update editor_reviewer_apply set is_deleted = '2' where apply_id = #{applyId}
+    </delete>
+
+    <delete id="deleteApplyByIds" parameterType="Long">
+        update editor_reviewer_apply set is_deleted = '2' where apply_id in
+        <foreach collection="array" item="applyId" open="(" separator="," close=")">
+            #{applyId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherArticleMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherArticle" id="PublisherArticleResult">
+        <id     property="articleId"       column="article_id"        />
+        <result property="manuscriptId"    column="manuscript_id"     />
+        <result property="issueId"         column="issue_id"          />
+        <result property="columnId"        column="column_id"         />
+        <result property="title"           column="title"             />
+        <result property="subtitle"        column="subtitle"          />
+        <result property="authorNames"     column="author_names"      />
+        <result property="abstractText"    column="abstract"          />
+        <result property="keywords"        column="keywords"          />
+        <result property="content"         column="content"           />
+        <result property="pageStart"       column="page_start"        />
+        <result property="pageEnd"         column="page_end"          />
+        <result property="wordCount"       column="word_count"        />
+        <result property="status"          column="status"            />
+        <result property="publishTime"     column="publish_time"      />
+        <result property="viewCount"       column="view_count"        />
+        <result property="cnkiTitle"       column="cnki_title"        />
+        <result property="cnkiMatchStatus" column="cnki_match_status" />
+        <result property="createBy"        column="create_by"         />
+        <result property="createTime"      column="create_time"       />
+        <result property="updateBy"        column="update_by"         />
+        <result property="updateTime"      column="update_time"       />
+        <result property="remark"          column="remark"            />
+    </resultMap>
+
+    <sql id="selectPublisherArticleVo">
+        select article_id, manuscript_id, issue_id, column_id, title, subtitle, author_names, abstract, keywords,
+               content, page_start, page_end, word_count, status, publish_time, view_count, cnki_title, cnki_match_status,
+               create_by, create_time, update_by, update_time, remark
+        from publisher_article
+    </sql>
+
+    <select id="selectArticleList" parameterType="com.hmmp.system.domain.publisher.PublisherArticle" resultMap="PublisherArticleResult">
+        <include refid="selectPublisherArticleVo"/>
+        <where>
+            <if test="issueId != null">AND issue_id = #{issueId}</if>
+            <if test="columnId != null">AND column_id = #{columnId}</if>
+            <if test="title != null and title != ''">AND title like concat('%', #{title}, '%')</if>
+            <if test="authorNames != null and authorNames != ''">AND author_names like concat('%', #{authorNames}, '%')</if>
+            <if test="keywords != null and keywords != ''">AND keywords like concat('%', #{keywords}, '%')</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+            <if test="cnkiMatchStatus != null and cnkiMatchStatus != ''">AND cnki_match_status = #{cnkiMatchStatus}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectArticleById" parameterType="Long" resultMap="PublisherArticleResult">
+        <include refid="selectPublisherArticleVo"/>
+        where article_id = #{articleId}
+    </select>
+
+    <insert id="insertArticle" parameterType="com.hmmp.system.domain.publisher.PublisherArticle" useGeneratedKeys="true" keyProperty="articleId">
+        insert into publisher_article (
+            manuscript_id, issue_id, column_id, title, subtitle, author_names, abstract, keywords,
+            content, page_start, page_end, word_count, status, publish_time, view_count, cnki_title, cnki_match_status,
+            create_by, create_time, update_by, update_time, remark
+        ) values (
+            #{manuscriptId}, #{issueId}, #{columnId}, #{title}, #{subtitle}, #{authorNames}, #{abstractText}, #{keywords},
+            #{content}, #{pageStart}, #{pageEnd}, #{wordCount}, #{status}, #{publishTime}, #{viewCount}, #{cnkiTitle}, #{cnkiMatchStatus},
+            #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark}
+        )
+    </insert>
+
+    <update id="updateArticle" parameterType="com.hmmp.system.domain.publisher.PublisherArticle">
+        update publisher_article
+        <set>
+            <if test="manuscriptId != null">manuscript_id = #{manuscriptId},</if>
+            <if test="issueId != null">issue_id = #{issueId},</if>
+            <if test="columnId != null">column_id = #{columnId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="subtitle != null">subtitle = #{subtitle},</if>
+            <if test="authorNames != null">author_names = #{authorNames},</if>
+            <if test="abstractText != null">abstract = #{abstractText},</if>
+            <if test="keywords != null">keywords = #{keywords},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="pageStart != null">page_start = #{pageStart},</if>
+            <if test="pageEnd != null">page_end = #{pageEnd},</if>
+            <if test="wordCount != null">word_count = #{wordCount},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="publishTime != null">publish_time = #{publishTime},</if>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
+            <if test="cnkiTitle != null">cnki_title = #{cnkiTitle},</if>
+            <if test="cnkiMatchStatus != null">cnki_match_status = #{cnkiMatchStatus},</if>
+            update_by = #{updateBy},
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        where article_id = #{articleId}
+    </update>
+
+    <update id="updateArticleStatus" parameterType="com.hmmp.system.domain.publisher.PublisherArticle">
+        update publisher_article set status = #{status}, update_by = #{updateBy}, update_time = sysdate()
+        where article_id = #{articleId}
+    </update>
+
+    <update id="batchPublishArticles" parameterType="Long">
+        update publisher_article set status = '1', publish_time = sysdate(), update_time = sysdate()
+        where article_id in
+        <foreach collection="array" item="articleId" open="(" separator="," close=")">
+            #{articleId}
+        </foreach>
+    </update>
+
+    <update id="updateCnkiStatus" parameterType="com.hmmp.system.domain.publisher.PublisherArticle">
+        update publisher_article set cnki_title = #{cnkiTitle}, cnki_match_status = #{cnkiMatchStatus}, update_time = sysdate()
+        where article_id = #{articleId}
+    </update>
+
+    <delete id="deleteArticleById" parameterType="Long">
+        delete from publisher_article where article_id = #{articleId}
+    </delete>
+
+    <delete id="deleteArticleByIds" parameterType="Long">
+        delete from publisher_article where article_id in
+        <foreach collection="array" item="articleId" open="(" separator="," close=")">
+            #{articleId}
+        </foreach>
+    </delete>
+
+</mapper>

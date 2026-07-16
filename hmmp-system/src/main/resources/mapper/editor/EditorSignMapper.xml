@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.EditorSignMapper">
+
+    <resultMap type="EditorSign" id="EditorSignResult">
+        <id     property="signId"          column="sign_id"           />
+        <result property="manuscriptId"    column="manuscript_id"     />
+        <result property="issueId"         column="issue_id"          />
+        <result property="signerId"        column="signer_id"         />
+        <result property="signerName"      column="signer_name"       />
+        <result property="signStatus"      column="sign_status"       />
+        <result property="signTime"        column="sign_time"         />
+        <result property="signOpinion"     column="sign_opinion"      />
+        <result property="pageStart"       column="page_start"        />
+        <result property="pageEnd"         column="page_end"          />
+        <result property="layoutFilePath"  column="layout_file_path"  />
+        <result property="createBy"        column="create_by"         />
+        <result property="createTime"      column="create_time"       />
+        <result property="updateBy"        column="update_by"         />
+        <result property="updateTime"      column="update_time"       />
+    </resultMap>
+
+    <sql id="selectEditorSignVo">
+        select sign_id, manuscript_id, issue_id, signer_id, signer_name, sign_status,
+               sign_time, sign_opinion, page_start, page_end, layout_file_path,
+               create_by, create_time, update_by, update_time
+        from editor_sign
+    </sql>
+
+    <select id="selectSignList" parameterType="EditorSign" resultMap="EditorSignResult">
+        <include refid="selectEditorSignVo"/>
+        <where>
+            <if test="manuscriptId != null">AND manuscript_id = #{manuscriptId}</if>
+            <if test="issueId != null">AND issue_id = #{issueId}</if>
+            <if test="signStatus != null and signStatus != ''">AND sign_status = #{signStatus}</if>
+            <if test="signerId != null">AND signer_id = #{signerId}</if>
+        </where>
+        order by sign_time desc
+    </select>
+
+    <select id="selectSignById" parameterType="Long" resultMap="EditorSignResult">
+        <include refid="selectEditorSignVo"/>
+        where sign_id = #{signId}
+    </select>
+
+    <select id="selectSignByManuscriptId" parameterType="Long" resultMap="EditorSignResult">
+        <include refid="selectEditorSignVo"/>
+        where manuscript_id = #{manuscriptId}
+    </select>
+
+    <insert id="insertSign" parameterType="EditorSign" useGeneratedKeys="true" keyProperty="signId">
+        insert into editor_sign (
+            manuscript_id, issue_id, signer_id, signer_name, sign_status,
+            sign_time, sign_opinion, page_start, page_end, layout_file_path,
+            create_by, create_time, update_by, update_time
+        ) values (
+            #{manuscriptId}, #{issueId}, #{signerId}, #{signerName}, #{signStatus},
+            #{signTime}, #{signOpinion}, #{pageStart}, #{pageEnd}, #{layoutFilePath},
+            #{createBy}, sysdate(), #{updateBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateSign" parameterType="EditorSign">
+        update editor_sign
+        <set>
+            <if test="signStatus != null">sign_status = #{signStatus},</if>
+            <if test="signTime != null">sign_time = #{signTime},</if>
+            <if test="signOpinion != null">sign_opinion = #{signOpinion},</if>
+            <if test="pageStart != null">page_start = #{pageStart},</if>
+            <if test="pageEnd != null">page_end = #{pageEnd},</if>
+            <if test="layoutFilePath != null">layout_file_path = #{layoutFilePath},</if>
+            update_by = #{updateBy},
+            update_time = sysdate()
+        </set>
+        where sign_id = #{signId}
+    </update>
+
+    <update id="updateSignStatus" parameterType="EditorSign">
+        update editor_sign set sign_status = #{signStatus}, update_by = #{updateBy}, update_time = sysdate()
+        where sign_id = #{signId}
+    </update>
+
+    <delete id="deleteSignById" parameterType="Long">
+        delete from editor_sign where sign_id = #{signId}
+    </delete>
+
+    <delete id="deleteSignByIds" parameterType="Long">
+        delete from editor_sign where sign_id in
+        <foreach collection="array" item="signId" open="(" separator="," close=")">
+            #{signId}
+        </foreach>
+    </delete>
+
+</mapper>

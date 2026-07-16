@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.meeting.MeetingTicketsMapper">
+
+    <resultMap type="MeetingTickets" id="MeetingTicketsResult">
+        <id     property="ticketId"    column="ticket_id"    />
+        <result property="meetingId"   column="meeting_id"   />
+        <result property="userId"      column="user_id"      />
+        <result property="ticketType"  column="ticket_type"  />
+        <result property="ticketNo"    column="ticket_no"    />
+        <result property="price"       column="price"        />
+        <result property="status"      column="status"       />
+        <result property="createTime"  column="create_time"  />
+    </resultMap>
+
+    <sql id="selectTicketsVo">
+        select ticket_id, meeting_id, user_id, ticket_type, ticket_no, price, status, create_time
+        from meeting_tickets
+    </sql>
+
+    <select id="selectTicketsList" parameterType="MeetingTickets" resultMap="MeetingTicketsResult">
+        <include refid="selectTicketsVo"/>
+        <where>
+            <if test="meetingId != null">AND meeting_id = #{meetingId}</if>
+            <if test="userId != null">AND user_id = #{userId}</if>
+            <if test="ticketType != null and ticketType != ''">AND ticket_type = #{ticketType}</if>
+            <if test="ticketNo != null and ticketNo != ''">AND ticket_no = #{ticketNo}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectTicketsById" parameterType="Long" resultMap="MeetingTicketsResult">
+        <include refid="selectTicketsVo"/>
+        where ticket_id = #{ticketId}
+    </select>
+
+    <insert id="insertTickets" parameterType="MeetingTickets" useGeneratedKeys="true" keyProperty="ticketId">
+        insert into meeting_tickets(
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="ticketType != null">ticket_type,</if>
+            <if test="ticketNo != null">ticket_no,</if>
+            <if test="price != null">price,</if>
+            <if test="status != null">status,</if>
+            create_time
+        )values(
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="ticketType != null">#{ticketType},</if>
+            <if test="ticketNo != null">#{ticketNo},</if>
+            <if test="price != null">#{price},</if>
+            <if test="status != null">#{status},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTickets" parameterType="MeetingTickets">
+        update meeting_tickets
+        <set>
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="ticketType != null">ticket_type = #{ticketType},</if>
+            <if test="ticketNo != null">ticket_no = #{ticketNo},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        where ticket_id = #{ticketId}
+    </update>
+
+    <delete id="deleteTicketsById" parameterType="Long">
+        delete from meeting_tickets where ticket_id = #{ticketId}
+    </delete>
+
+    <delete id="deleteTicketsByIds" parameterType="Long">
+        delete from meeting_tickets where ticket_id in
+        <foreach collection="array" item="ticketId" open="(" separator="," close=")">
+            #{ticketId}
+        </foreach>
+    </delete>
+
+</mapper>

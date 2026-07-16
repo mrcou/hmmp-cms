@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.message.MsgSmsMapper">
+
+    <resultMap type="MsgSms" id="MsgSmsResult">
+        <id     property="smsId"       column="sms_id"        />
+        <result property="phone"       column="phone"         />
+        <result property="content"     column="content"       />
+        <result property="sendStatus"  column="send_status"   />
+        <result property="sendTime"    column="send_time"     />
+        <result property="failReason"  column="fail_reason"   />
+        <result property="retryCount"  column="retry_count"   />
+        <result property="sendBy"      column="send_by"       />
+        <result property="smsProvider" column="sms_provider"  />
+        <result property="createTime"  column="create_time"   />
+    </resultMap>
+
+    <sql id="selectSmsVo">
+        select sms_id, phone, content, send_status, send_time, fail_reason, retry_count, send_by, sms_provider, create_time
+        from msg_sms
+    </sql>
+
+    <select id="selectSmsList" parameterType="MsgSms" resultMap="MsgSmsResult">
+        <include refid="selectSmsVo"/>
+        <where>
+            <if test="sendStatus != null and sendStatus != ''">AND send_status = #{sendStatus}</if>
+            <if test="phone != null and phone != ''">AND phone like concat('%', #{phone}, '%')</if>
+            <if test="content != null and content != ''">AND content like concat('%', #{content}, '%')</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectSmsById" parameterType="Long" resultMap="MsgSmsResult">
+        <include refid="selectSmsVo"/>
+        where sms_id = #{smsId}
+    </select>
+
+    <insert id="insertSms" parameterType="MsgSms" useGeneratedKeys="true" keyProperty="smsId">
+        insert into msg_sms(
+            <if test="phone != null and phone != ''">phone,</if>
+            <if test="content != null">content,</if>
+            <if test="sendStatus != null">send_status,</if>
+            <if test="sendTime != null">send_time,</if>
+            <if test="failReason != null">fail_reason,</if>
+            <if test="retryCount != null">retry_count,</if>
+            <if test="sendBy != null">send_by,</if>
+            <if test="smsProvider != null">sms_provider,</if>
+            create_time
+        )values(
+            <if test="phone != null and phone != ''">#{phone},</if>
+            <if test="content != null">#{content},</if>
+            <if test="sendStatus != null">#{sendStatus},</if>
+            <if test="sendTime != null">#{sendTime},</if>
+            <if test="failReason != null">#{failReason},</if>
+            <if test="retryCount != null">#{retryCount},</if>
+            <if test="sendBy != null">#{sendBy},</if>
+            <if test="smsProvider != null">#{smsProvider},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateSms" parameterType="MsgSms">
+        update msg_sms
+        <set>
+            <if test="phone != null and phone != ''">phone = #{phone},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="sendStatus != null">send_status = #{sendStatus},</if>
+            <if test="sendTime != null">send_time = #{sendTime},</if>
+            <if test="failReason != null">fail_reason = #{failReason},</if>
+            <if test="retryCount != null">retry_count = #{retryCount},</if>
+            <if test="sendBy != null">send_by = #{sendBy},</if>
+            <if test="smsProvider != null">sms_provider = #{smsProvider},</if>
+        </set>
+        where sms_id = #{smsId}
+    </update>
+
+    <delete id="deleteSmsById" parameterType="Long">
+        delete from msg_sms where sms_id = #{smsId}
+    </delete>
+
+    <delete id="deleteSmsByIds" parameterType="Long">
+        delete from msg_sms where sms_id in
+        <foreach collection="array" item="smsId" open="(" separator="," close=")">
+            #{smsId}
+        </foreach>
+    </delete>
+
+</mapper>

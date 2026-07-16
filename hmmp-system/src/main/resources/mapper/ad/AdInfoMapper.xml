@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.AdInfoMapper">
+    
+    <resultMap type="AdInfo" id="AdInfoResult">
+        <id     property="adId"          column="ad_id"           />
+        <result property="bargainId"     column="bargain_id"      />
+        <result property="customerId"    column="customer_id"     />
+        <result property="adName"        column="ad_name"         />
+        <result property="typeId"        column="type_id"         />
+        <result property="typeName"      column="type_name"       />
+        <result property="positionId"    column="position_id"     />
+        <result property="positionName"  column="position_name"   />
+        <result property="adContent"     column="ad_content"      />
+        <result property="adImage"       column="ad_image"        />
+        <result property="adLink"        column="ad_link"         />
+        <result property="startDate"     column="start_date"      />
+        <result property="endDate"       column="end_date"        />
+        <result property="price"         column="price"           />
+        <result property="issueIds"      column="issue_ids"       />
+        <result property="applyStatus"   column="apply_status"    />
+        <result property="auditTime"     column="audit_time"      />
+        <result property="auditBy"       column="audit_by"        />
+        <result property="auditOpinion"  column="audit_opinion"   />
+        <result property="makeStatus"    column="make_status"     />
+        <result property="status"        column="status"          />
+        <result property="viewCount"     column="view_count"      />
+        <result property="clickCount"    column="click_count"     />
+        <result property="createBy"      column="create_by"       />
+        <result property="createTime"    column="create_time"     />
+        <result property="updateBy"      column="update_by"       />
+        <result property="updateTime"    column="update_time"     />
+    </resultMap>
+    
+    <sql id="selectAdVo">
+        select ad_id, bargain_id, customer_id, ad_name, type_id, type_name, position_id, position_name, ad_content, ad_image, ad_link, start_date, end_date, price, issue_ids, apply_status, audit_time, audit_by, audit_opinion, make_status, status, view_count, click_count, create_by, create_time, update_by, update_time 
+        from ad_info
+    </sql>
+    
+    <select id="selectAdList" parameterType="AdInfo" resultMap="AdInfoResult">
+        <include refid="selectAdVo"/>
+        <where>
+            <if test="adName != null and adName != ''">
+                AND ad_name like concat('%', #{adName}, '%')
+            </if>
+            <if test="bargainId != null">
+                AND bargain_id = #{bargainId}
+            </if>
+            <if test="customerId != null">
+                AND customer_id = #{customerId}
+            </if>
+            <if test="typeId != null">
+                AND type_id = #{typeId}
+            </if>
+            <if test="positionId != null">
+                AND position_id = #{positionId}
+            </if>
+            <if test="applyStatus != null and applyStatus != ''">
+                AND apply_status = #{applyStatus}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+    
+    <select id="selectAdById" parameterType="Long" resultMap="AdInfoResult">
+        <include refid="selectAdVo"/>
+        where ad_id = #{adId}
+    </select>
+    
+    <insert id="insertAd" parameterType="AdInfo" useGeneratedKeys="true" keyProperty="adId">
+        insert into ad_info (
+            <if test="bargainId != null">bargain_id,</if>
+            <if test="customerId != null">customer_id,</if>
+            <if test="adName != null and adName != ''">ad_name,</if>
+            <if test="typeId != null">type_id,</if>
+            <if test="typeName != null">type_name,</if>
+            <if test="positionId != null">position_id,</if>
+            <if test="positionName != null">position_name,</if>
+            <if test="adContent != null">ad_content,</if>
+            <if test="adImage != null">ad_image,</if>
+            <if test="adLink != null">ad_link,</if>
+            <if test="startDate != null">start_date,</if>
+            <if test="endDate != null">end_date,</if>
+            <if test="price != null">price,</if>
+            <if test="issueIds != null">issue_ids,</if>
+            <if test="applyStatus != null and applyStatus != ''">apply_status,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        )values(
+            <if test="bargainId != null">#{bargainId},</if>
+            <if test="customerId != null">#{customerId},</if>
+            <if test="adName != null and adName != ''">#{adName},</if>
+            <if test="typeId != null">#{typeId},</if>
+            <if test="typeName != null">#{typeName},</if>
+            <if test="positionId != null">#{positionId},</if>
+            <if test="positionName != null">#{positionName},</if>
+            <if test="adContent != null">#{adContent},</if>
+            <if test="adImage != null">#{adImage},</if>
+            <if test="adLink != null">#{adLink},</if>
+            <if test="startDate != null">#{startDate},</if>
+            <if test="endDate != null">#{endDate},</if>
+            <if test="price != null">#{price},</if>
+            <if test="issueIds != null">#{issueIds},</if>
+            <if test="applyStatus != null and applyStatus != ''">#{applyStatus},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+    
+    <update id="updateAd" parameterType="AdInfo">
+        update ad_info 
+        <set>
+            <if test="bargainId != null">bargain_id = #{bargainId},</if>
+            <if test="customerId != null">customer_id = #{customerId},</if>
+            <if test="adName != null and adName != ''">ad_name = #{adName},</if>
+            <if test="typeId != null">type_id = #{typeId},</if>
+            <if test="typeName != null">type_name = #{typeName},</if>
+            <if test="positionId != null">position_id = #{positionId},</if>
+            <if test="positionName != null">position_name = #{positionName},</if>
+            <if test="adContent != null">ad_content = #{adContent},</if>
+            <if test="adImage != null">ad_image = #{adImage},</if>
+            <if test="adLink != null">ad_link = #{adLink},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="issueIds != null">issue_ids = #{issueIds},</if>
+            <if test="applyStatus != null and applyStatus != ''">apply_status = #{applyStatus},</if>
+            <if test="auditTime != null">audit_time = #{auditTime},</if>
+            <if test="auditBy != null">audit_by = #{auditBy},</if>
+            <if test="auditOpinion != null">audit_opinion = #{auditOpinion},</if>
+            <if test="makeStatus != null and makeStatus != ''">make_status = #{makeStatus},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where ad_id = #{adId}
+    </update>
+    
+    <delete id="deleteAdById" parameterType="Long">
+        delete from ad_info where ad_id = #{adId}
+    </delete>
+    
+    <delete id="deleteAdByIds" parameterType="Long">
+        delete from ad_info where ad_id in 
+        <foreach item="adId" collection="array" open="(" separator="," close=")">
+            #{adId}
+        </foreach>
+    </delete>
+    
+</mapper>

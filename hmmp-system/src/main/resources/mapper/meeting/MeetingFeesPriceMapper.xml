@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.meeting.MeetingFeesPriceMapper">
+
+    <resultMap type="MeetingFeesPrice" id="MeetingFeesPriceResult">
+        <id     property="priceId"        column="price_id"          />
+        <result property="meetingId"      column="meeting_id"        />
+        <result property="groupId"        column="group_id"          />
+        <result property="feeType"        column="fee_type"          />
+        <result property="price"          column="price"             />
+        <result property="validStartDate" column="valid_start_date"  />
+        <result property="validEndDate"   column="valid_end_date"    />
+        <result property="createTime"     column="create_time"       />
+    </resultMap>
+
+    <sql id="selectPriceVo">
+        select price_id, meeting_id, group_id, fee_type, price, valid_start_date, valid_end_date, create_time
+        from meeting_fees_price
+    </sql>
+
+    <select id="selectPriceList" parameterType="MeetingFeesPrice" resultMap="MeetingFeesPriceResult">
+        <include refid="selectPriceVo"/>
+        <where>
+            <if test="meetingId != null">AND meeting_id = #{meetingId}</if>
+            <if test="groupId != null">AND group_id = #{groupId}</if>
+            <if test="feeType != null and feeType != ''">AND fee_type = #{feeType}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectPriceById" parameterType="Long" resultMap="MeetingFeesPriceResult">
+        <include refid="selectPriceVo"/>
+        where price_id = #{priceId}
+    </select>
+
+    <insert id="insertPrice" parameterType="MeetingFeesPrice" useGeneratedKeys="true" keyProperty="priceId">
+        insert into meeting_fees_price(
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="groupId != null">group_id,</if>
+            <if test="feeType != null">fee_type,</if>
+            <if test="price != null">price,</if>
+            <if test="validStartDate != null">valid_start_date,</if>
+            <if test="validEndDate != null">valid_end_date,</if>
+            create_time
+        )values(
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="groupId != null">#{groupId},</if>
+            <if test="feeType != null">#{feeType},</if>
+            <if test="price != null">#{price},</if>
+            <if test="validStartDate != null">#{validStartDate},</if>
+            <if test="validEndDate != null">#{validEndDate},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updatePrice" parameterType="MeetingFeesPrice">
+        update meeting_fees_price
+        <set>
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="groupId != null">group_id = #{groupId},</if>
+            <if test="feeType != null">fee_type = #{feeType},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="validStartDate != null">valid_start_date = #{validStartDate},</if>
+            <if test="validEndDate != null">valid_end_date = #{validEndDate},</if>
+        </set>
+        where price_id = #{priceId}
+    </update>
+
+    <delete id="deletePriceById" parameterType="Long">
+        delete from meeting_fees_price where price_id = #{priceId}
+    </delete>
+
+    <delete id="deletePriceByIds" parameterType="Long">
+        delete from meeting_fees_price where price_id in
+        <foreach collection="array" item="priceId" open="(" separator="," close=")">
+            #{priceId}
+        </foreach>
+    </delete>
+
+</mapper>

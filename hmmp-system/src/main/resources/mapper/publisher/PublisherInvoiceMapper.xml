@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherInvoiceMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherInvoice" id="PublisherInvoiceResult">
+        <id     property="invoiceId"     column="invoice_id"       />
+        <result property="orderId"       column="order_id"         />
+        <result property="invoiceNo"     column="invoice_no"       />
+        <result property="invoiceType"   column="invoice_type"     />
+        <result property="amount"        column="amount"           />
+        <result property="taxAmount"     column="tax_amount"       />
+        <result property="totalAmount"   column="total_amount"     />
+        <result property="title"         column="title"            />
+        <result property="taxId"         column="tax_id"           />
+        <result property="applyStatus"   column="apply_status"     />
+        <result property="auditTime"     column="audit_time"       />
+        <result property="auditBy"       column="audit_by"         />
+        <result property="auditOpinion"  column="audit_opinion"    />
+        <result property="makeStatus"    column="make_status"      />
+        <result property="makeTime"      column="make_time"        />
+        <result property="postStatus"    column="post_status"      />
+        <result property="postTime"      column="post_time"        />
+        <result property="trackingNo"    column="tracking_no"      />
+        <result property="createBy"      column="create_by"        />
+        <result property="createTime"    column="create_time"      />
+        <result property="updateBy"      column="update_by"        />
+        <result property="updateTime"    column="update_time"      />
+    </resultMap>
+
+    <sql id="selectPublisherInvoiceVo">
+        select invoice_id, order_id, invoice_no, invoice_type, amount, tax_amount, total_amount, title, tax_id,
+               apply_status, audit_time, audit_by, audit_opinion, make_status, make_time, post_status, post_time, tracking_no,
+               create_by, create_time, update_by, update_time
+        from publisher_invoice
+    </sql>
+
+    <select id="selectInvoiceList" parameterType="com.hmmp.system.domain.publisher.PublisherInvoice" resultMap="PublisherInvoiceResult">
+        <include refid="selectPublisherInvoiceVo"/>
+        <where>
+            <if test="orderId != null">AND order_id = #{orderId}</if>
+            <if test="invoiceNo != null and invoiceNo != ''">AND invoice_no like concat('%', #{invoiceNo}, '%')</if>
+            <if test="title != null and title != ''">AND title like concat('%', #{title}, '%')</if>
+            <if test="applyStatus != null and applyStatus != ''">AND apply_status = #{applyStatus}</if>
+            <if test="makeStatus != null and makeStatus != ''">AND make_status = #{makeStatus}</if>
+            <if test="postStatus != null and postStatus != ''">AND post_status = #{postStatus}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectInvoiceById" parameterType="Long" resultMap="PublisherInvoiceResult">
+        <include refid="selectPublisherInvoiceVo"/>
+        where invoice_id = #{invoiceId}
+    </select>
+
+    <insert id="insertInvoice" parameterType="com.hmmp.system.domain.publisher.PublisherInvoice" useGeneratedKeys="true" keyProperty="invoiceId">
+        insert into publisher_invoice (
+            order_id, invoice_no, invoice_type, amount, tax_amount, total_amount, title, tax_id,
+            apply_status, audit_time, audit_by, audit_opinion, make_status, make_time, post_status, post_time, tracking_no,
+            create_by, create_time, update_by, update_time
+        ) values (
+            #{orderId}, #{invoiceNo}, #{invoiceType}, #{amount}, #{taxAmount}, #{totalAmount}, #{title}, #{taxId},
+            #{applyStatus}, #{auditTime}, #{auditBy}, #{auditOpinion}, #{makeStatus}, #{makeTime}, #{postStatus}, #{postTime}, #{trackingNo},
+            #{createBy}, sysdate(), #{updateBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateInvoice" parameterType="com.hmmp.system.domain.publisher.PublisherInvoice">
+        update publisher_invoice
+        <set>
+            <if test="orderId != null">order_id = #{orderId},</if>
+            <if test="invoiceNo != null">invoice_no = #{invoiceNo},</if>
+            <if test="invoiceType != null">invoice_type = #{invoiceType},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="taxAmount != null">tax_amount = #{taxAmount},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="taxId != null">tax_id = #{taxId},</if>
+            update_by = #{updateBy},
+            update_time = sysdate()
+        </set>
+        where invoice_id = #{invoiceId}
+    </update>
+
+    <update id="auditInvoice" parameterType="com.hmmp.system.domain.publisher.PublisherInvoice">
+        update publisher_invoice set apply_status = #{applyStatus}, audit_time = sysdate(), audit_by = #{auditBy},
+        audit_opinion = #{auditOpinion}, update_by = #{updateBy}, update_time = sysdate()
+        where invoice_id = #{invoiceId}
+    </update>
+
+    <update id="makeInvoice" parameterType="com.hmmp.system.domain.publisher.PublisherInvoice">
+        update publisher_invoice set make_status = #{makeStatus}, invoice_no = #{invoiceNo}, make_time = sysdate(),
+        update_by = #{updateBy}, update_time = sysdate()
+        where invoice_id = #{invoiceId}
+    </update>
+
+    <update id="postInvoice" parameterType="com.hmmp.system.domain.publisher.PublisherInvoice">
+        update publisher_invoice set post_status = #{postStatus}, tracking_no = #{trackingNo}, post_time = sysdate(),
+        update_by = #{updateBy}, update_time = sysdate()
+        where invoice_id = #{invoiceId}
+    </update>
+
+    <delete id="deleteInvoiceById" parameterType="Long">
+        delete from publisher_invoice where invoice_id = #{invoiceId}
+    </delete>
+
+    <delete id="deleteInvoiceByIds" parameterType="Long">
+        delete from publisher_invoice where invoice_id in
+        <foreach collection="array" item="invoiceId" open="(" separator="," close=")">
+            #{invoiceId}
+        </foreach>
+    </delete>
+
+</mapper>
