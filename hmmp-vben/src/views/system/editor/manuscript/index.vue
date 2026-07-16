@@ -10,43 +10,54 @@ import * as editorApi from '#/api/biz/editor';
 
 // ---------- 状态常量 ----------
 const manuscriptStatusMap: Record<string, { label: string; color: string }> = {
-  '0': { label: '待处理', color: 'blue' },
-  '1': { label: '已分配', color: 'cyan' },
-  '2': { label: '审稿中', color: 'orange' },
-  '3': { label: '退修中', color: 'purple' },
-  '4': { label: '已录用', color: 'green' },
-  '5': { label: '已退稿', color: 'red' },
-  '6': { label: '已发表', color: 'geekblue' },
-  '7': { label: '已修回', color: 'lime' },
-  '9': { label: '已归档', color: 'default' },
+  '01': { label: '新收稿', color: 'blue' },
+  '02': { label: '新分配', color: 'cyan' },
+  '03': { label: '审稿中', color: 'orange' },
+  '04': { label: '已退修', color: 'purple' },
+  '05': { label: '已修回', color: 'lime' },
+  '06': { label: '已采用', color: 'green' },
+  '07': { label: '已退稿', color: 'red' },
+  '08': { label: '已发表', color: 'geekblue' },
+  '09': { label: '已归档', color: 'default' },
 };
+
+const searchStatusOptions = [
+  { value: '01', label: '待审稿' },
+  { value: '02', label: '新到稿' },
+  { value: '03', label: '已回执' },
+  { value: '04', label: '已退稿' },
+  { value: '05', label: '不采用' },
+  { value: '06', label: '处理中' },
+  { value: '07', label: '只退稿' },
+  { value: '08', label: '改投稿' },
+];
 
 // 状态标签页
 const statusTabs = [
   { key: 'register', label: '收稿登记' },
   { key: '', label: '全部' },
-  { key: '0', label: '新收稿' },
-  { key: '2', label: '审稿中' },
-  { key: '3', label: '已退修' },
-  { key: '7', label: '已修回' },
-  { key: '4', label: '已采用' },
-  { key: '5', label: '已退稿' },
-  { key: '6', label: '已发表' },
-  { key: '9', label: '归档查询' },
+  { key: '01', label: '新收稿' },
+  { key: '03', label: '审稿中' },
+  { key: '04', label: '已退修' },
+  { key: '05', label: '已修回' },
+  { key: '06', label: '已采用' },
+  { key: '07', label: '已退稿' },
+  { key: '08', label: '已发表' },
+  { key: '09', label: '归档查询' },
 ];
 
 /** 三级 leaf 路径 → 列表状态 tab */
 const pathTabMap: Record<string, string> = {
   register: 'register',
-  new: '0',
-  reviewing: '2',
-  revised: '3',
-  resubmitted: '7',
-  adopted: '4',
-  rejected: '5',
-  published: '6',
+  new: '01',
+  reviewing: '03',
+  revised: '04',
+  resubmitted: '05',
+  adopted: '06',
+  rejected: '07',
+  published: '08',
   search: '',
-  archived: '9',
+  archived: '09',
 };
 
 const activeTab = ref('');
@@ -62,15 +73,15 @@ function resolveTabFromRoute(): string {
 /** tab 切换时跳转到对应三级菜单 path，保持侧栏高亮 */
 const tabPathMap: Record<string, string> = {
   register: 'register',
-  '0': 'new',
-  '2': 'reviewing',
-  '3': 'revised',
-  '7': 'resubmitted',
-  '4': 'adopted',
-  '5': 'rejected',
-  '6': 'published',
+  '01': 'new',
+  '03': 'reviewing',
+  '04': 'revised',
+  '05': 'resubmitted',
+  '06': 'adopted',
+  '07': 'rejected',
+  '08': 'published',
   '': 'search',
-  '9': 'archived',
+  '09': 'archived',
 };
 
 const manuscriptTypeMap: Record<string, string> = {
@@ -206,8 +217,8 @@ async function loadTable() {
       pageNum: pagination.current,
       pageSize: pagination.pageSize,
     };
-    // 标签页过滤：选中状态标签时覆盖搜索表单的 status（收稿登记不做状态过滤）
-    if (activeTab.value && activeTab.value !== 'register') {
+    // 标签页提供默认状态；搜索区手动选择稿件状态时优先使用搜索条件。
+    if (!params.status && activeTab.value && activeTab.value !== 'register') {
       params.status = activeTab.value;
     }
     const res = await editorApi.getManuscriptList(params);
@@ -407,10 +418,10 @@ function getTypeLabel(type: string | undefined) {
         <a-form-item label="作者">
           <a-input v-model:value="searchForm.authorNames" placeholder="请输入" allow-clear style="width:130px" />
         </a-form-item>
-        <a-form-item label="状态">
-          <a-select v-model:value="searchForm.status" placeholder="请选择" allow-clear style="width:130px">
-            <a-select-option v-for="(val, key) in manuscriptStatusMap" :key="key" :value="key">
-              {{ val.label }}
+        <a-form-item label="稿件状态">
+          <a-select v-model:value="searchForm.status" placeholder="请选择" allow-clear style="width:150px">
+            <a-select-option v-for="option in searchStatusOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
             </a-select-option>
           </a-select>
         </a-form-item>

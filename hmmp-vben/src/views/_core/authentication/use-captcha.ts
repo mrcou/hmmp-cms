@@ -9,7 +9,7 @@ interface CaptchaState {
 }
 
 interface CaptchaImageResult {
-  captchaEnabled: boolean;
+  captchaEnabled?: boolean;
   img?: string;
   uuid?: string;
 }
@@ -21,10 +21,17 @@ const state = reactive<CaptchaState>({
 });
 
 async function refreshCaptcha() {
-  const res = await requestClient.get<CaptchaImageResult>('/captchaImage');
-  state.enabled = res.captchaEnabled;
-  state.uuid = res.uuid ?? '';
-  state.img = res.img ? `data:image/jpg;base64,${res.img}` : '';
+  try {
+    const res = await requestClient.get<CaptchaImageResult>('/captchaImage');
+    state.enabled = !!res.captchaEnabled;
+    state.uuid = res.uuid ?? '';
+    state.img = res.img ? `data:image/jpg;base64,${res.img}` : '';
+  } catch {
+    state.enabled = false;
+    state.uuid = '';
+    state.img = '';
+  }
+  return state;
 }
 
 export function useCaptcha() {

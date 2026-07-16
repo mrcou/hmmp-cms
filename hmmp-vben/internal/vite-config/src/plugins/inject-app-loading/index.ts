@@ -16,19 +16,16 @@ async function viteInjectAppLoadingPlugin(
   env: Record<string, any> = {},
   loadingTemplate = 'loading.html',
 ): Promise<PluginOption | undefined> {
-  const loadingHtml = await getLoadingRawByHtmlTemplate(loadingTemplate);
+  const loadingHtml = minifyLoadingHtml(
+    await getLoadingRawByHtmlTemplate(loadingTemplate),
+  );
   const { version } = await readPackageJSON(process.cwd());
   const envRaw = isBuild ? 'prod' : 'dev';
   const cacheName = `'${env.VITE_APP_NAMESPACE}-${version}-${envRaw}-preferences-theme'`;
 
   // 获取缓存的主题
   // 保证黑暗主题下，刷新页面时，loading也是黑暗主题
-  const injectScript = `
-  <script data-app-loading="inject-js">
-  var theme = localStorage.getItem(${cacheName});
-  document.documentElement.classList.toggle('dark', /dark/.test(theme));
-</script>
-`;
+  const injectScript = `<script data-app-loading="inject-js">var theme=localStorage.getItem(${cacheName});document.documentElement.classList.toggle('dark',/dark/.test(theme));</script>`;
 
   if (!loadingHtml) {
     return;
@@ -61,6 +58,27 @@ async function getLoadingRawByHtmlTemplate(loadingTemplate: string) {
   }
 
   return await fsp.readFile(appLoadingPath, 'utf8');
+}
+
+function minifyCss(css: string) {
+  return css
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([{}:;,>])\s*/g, '$1')
+    .replace(/;}/g, '}')
+    .trim();
+}
+
+function minifyLoadingHtml(html: string) {
+  return html
+    .replace(
+      /<style data-app-loading="inject-css">([\s\S]*?)<\/style>/g,
+      (_match, css: string) =>
+        `<style data-app-loading="inject-css">${minifyCss(css)}</style>`,
+    )
+    .replace(/>\s+</g, '><')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 export { viteInjectAppLoadingPlugin };
