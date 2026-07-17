@@ -1,7 +1,9 @@
 package com.hmmp.web.controller.author;
 
+import java.io.File;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,9 +12,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.hmmp.common.config.RuoYiConfig;
+import com.hmmp.common.constant.Constants;
 import com.hmmp.common.core.controller.BaseController;
 import com.hmmp.common.core.domain.AjaxResult;
+import com.hmmp.common.utils.StringUtils;
+import com.hmmp.common.utils.file.FileUtils;
 import com.hmmp.system.domain.AuthorSubmission;
+import com.hmmp.system.plugin.ManuscriptWordMetaPlugin;
 import com.hmmp.system.service.IAuthorSubmissionService;
 
 /**
@@ -40,6 +47,49 @@ public class AuthorController extends BaseController
         authorSubmission.setIsDeleted("0");
         List<AuthorSubmission> list = authorSubmissionService.selectAuthorSubmissionList(authorSubmission);
         return success(list);
+    }
+
+    /**
+     * 扫描已上传稿件 Word，自动提取标题/关键词/摘要
+     */
+    @PreAuthorize("@ss.hasPermi('author:manuscript:contribution')")
+    @PostMapping("/manuscript/parseMeta")
+    public AjaxResult parseMeta(@RequestBody Map<String, String> body)
+    {
+        String filePath = body == null ? null : body.get("filePath");
+        if (StringUtils.isEmpty(filePath))
+        {
+            return error("请先上传稿件正文");
+        }
+        if (!FileUtils.checkAllowDownload(filePath))
+        {
+            return error("文件路径非法");
+        }
+        try
+        {
+            String relative = StringUtils.substringAfter(filePath, Constants.RESOURCE_PREFIX);
+            if (StringUtils.isEmpty(relative))
+            {
+                relative = filePath;
+            }
+            String absolutePath = RuoYiConfig.getProfile() + relative;
+            File file = new File(absolutePath);
+            if (!file.exists() || !file.isFile())
+            {
+                return error("未找到稿件文件，请重新上传后再试");
+            }
+            Map<String, Object> meta = ManuscriptWordMetaPlugin.scan(absolutePath);
+            return success(meta);
+        }
+        catch (IllegalArgumentException ex)
+        {
+            return error(ex.getMessage());
+        }
+        catch (Exception ex)
+        {
+            logger.error("解析稿件元信息失败: {}", filePath, ex);
+            return error("解析稿件失败：" + ex.getMessage());
+        }
     }
 
     /**

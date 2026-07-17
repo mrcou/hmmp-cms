@@ -41,6 +41,7 @@ nbdist/
 node_modules/
 .pnpm-store/
 *.log
+logs/
 *.xml.versionsBackup
 *.swp
 
