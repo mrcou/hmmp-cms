@@ -1,12 +1,14 @@
 package com.hmmp.system.domain.publisher;
 
+import java.util.Date;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.hmmp.common.core.domain.BaseEntity;
 
 /**
  * 虚拟专辑对象 publisher_virtual_album
- * 
+ *
  * @author hmmp
  */
 public class PublisherVirtualAlbum extends BaseEntity
@@ -16,11 +18,27 @@ public class PublisherVirtualAlbum extends BaseEntity
     /** 专辑ID */
     private Long albumId;
 
-    /** 专辑名称 */
-    private String albumName;
+    /** 杂志编号 */
+    private String journalCode;
 
-    /** 专辑编码 */
-    private String albumCode;
+    /** 中文名 */
+    private String nameCn;
+
+    /** 英文名 */
+    private String nameEn;
+
+    /** 完成日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date finishDate;
+
+    /** 顺序 */
+    private Integer orderNum;
+
+    /** 类型 */
+    private String albumType;
+
+    /** 会议ID */
+    private Long meetingId;
 
     /** 封面图片 */
     private String coverImage;
@@ -41,24 +59,74 @@ public class PublisherVirtualAlbum extends BaseEntity
         this.albumId = albumId;
     }
 
-    public String getAlbumName()
+    public String getJournalCode()
     {
-        return albumName;
+        return journalCode;
     }
 
-    public void setAlbumName(String albumName)
+    public void setJournalCode(String journalCode)
     {
-        this.albumName = albumName;
+        this.journalCode = journalCode;
     }
 
-    public String getAlbumCode()
+    public String getNameCn()
     {
-        return albumCode;
+        return nameCn;
     }
 
-    public void setAlbumCode(String albumCode)
+    public void setNameCn(String nameCn)
     {
-        this.albumCode = albumCode;
+        this.nameCn = nameCn;
+    }
+
+    public String getNameEn()
+    {
+        return nameEn;
+    }
+
+    public void setNameEn(String nameEn)
+    {
+        this.nameEn = nameEn;
+    }
+
+    public Date getFinishDate()
+    {
+        return finishDate;
+    }
+
+    public void setFinishDate(Date finishDate)
+    {
+        this.finishDate = finishDate;
+    }
+
+    public Integer getOrderNum()
+    {
+        return orderNum;
+    }
+
+    public void setOrderNum(Integer orderNum)
+    {
+        this.orderNum = orderNum;
+    }
+
+    public String getAlbumType()
+    {
+        return albumType;
+    }
+
+    public void setAlbumType(String albumType)
+    {
+        this.albumType = albumType;
+    }
+
+    public Long getMeetingId()
+    {
+        return meetingId;
+    }
+
+    public void setMeetingId(Long meetingId)
+    {
+        this.meetingId = meetingId;
     }
 
     public String getCoverImage()
@@ -95,8 +163,13 @@ public class PublisherVirtualAlbum extends BaseEntity
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
             .append("albumId", getAlbumId())
-            .append("albumName", getAlbumName())
-            .append("albumCode", getAlbumCode())
+            .append("journalCode", getJournalCode())
+            .append("nameCn", getNameCn())
+            .append("nameEn", getNameEn())
+            .append("finishDate", getFinishDate())
+            .append("orderNum", getOrderNum())
+            .append("albumType", getAlbumType())
+            .append("meetingId", getMeetingId())
             .append("coverImage", getCoverImage())
             .append("description", getDescription())
             .append("status", getStatus())

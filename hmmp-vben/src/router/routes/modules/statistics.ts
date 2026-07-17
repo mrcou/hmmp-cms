@@ -29,7 +29,7 @@ const routes: RouteRecordRaw[] = [
         {
           name: 'StatisticsIntegrativeJournal',
           path: 'journal',
-          component: () => import('#/views/system/statistics/integrative/panel.vue'),
+          component: () => import('#/views/system/statistics/integrative/journal.vue'),
           meta: {
             title: '期刊统计',
             order: 1,
@@ -40,7 +40,7 @@ const routes: RouteRecordRaw[] = [
         {
           name: 'StatisticsIntegrativeAuditCycle',
           path: 'audit-cycle',
-          component: () => import('#/views/system/statistics/integrative/panel.vue'),
+          component: () => import('#/views/system/statistics/integrative/audit-cycle.vue'),
           meta: {
             title: '审理周期统计',
             order: 2,
@@ -51,7 +51,7 @@ const routes: RouteRecordRaw[] = [
         {
           name: 'StatisticsIntegrativePublishCycle',
           path: 'publish-cycle',
-          component: () => import('#/views/system/statistics/integrative/panel.vue'),
+          component: () => import('#/views/system/statistics/integrative/publish-cycle.vue'),
           meta: {
             title: '出版周期统计',
             order: 3,
@@ -62,7 +62,7 @@ const routes: RouteRecordRaw[] = [
         {
           name: 'StatisticsIntegrativeEditProcessCycle',
           path: 'edit-process-cycle',
-          component: () => import('#/views/system/statistics/integrative/panel.vue'),
+          component: () => import('#/views/system/statistics/integrative/edit-process-cycle.vue'),
           meta: {
             title: '责编处理周期统计',
             order: 4,
@@ -73,7 +73,7 @@ const routes: RouteRecordRaw[] = [
         {
           name: 'StatisticsIntegrativeEditArticleCycle',
           path: 'edit-article-cycle',
-          component: () => import('#/views/system/statistics/integrative/panel.vue'),
+          component: () => import('#/views/system/statistics/integrative/edit-article-cycle.vue'),
           meta: {
             title: '加工周期',
             order: 5,
@@ -82,20 +82,9 @@ const routes: RouteRecordRaw[] = [
           },
         },
         {
-          name: 'StatisticsIntegrativeEditWork',
-          path: 'edit-work',
-          component: () => import('#/views/system/statistics/integrative/panel.vue'),
-          meta: {
-            title: '责编工作量统计',
-            order: 6,
-            icon: 'lucide:briefcase',
-            keepAlive: true,
-          },
-        },
-        {
           name: 'StatisticsIntegrativeEditProduction',
           path: 'edit-production',
-          component: () => import('#/views/system/statistics/integrative/panel.vue'),
+          component: () => import('#/views/system/statistics/integrative/edit-production.vue'),
           meta: {
             title: '责编加工工作量',
             order: 7,
@@ -106,7 +95,7 @@ const routes: RouteRecordRaw[] = [
         {
           name: 'StatisticsIntegrativeReviewerAudit',
           path: 'reviewer-audit',
-          component: () => import('#/views/system/statistics/integrative/panel.vue'),
+          component: () => import('#/views/system/statistics/integrative/reviewer-audit.vue'),
           meta: {
             title: '审稿统计',
             order: 8,
@@ -117,7 +106,7 @@ const routes: RouteRecordRaw[] = [
         {
           name: 'StatisticsIntegrativeReferencedArticle',
           path: 'referenced-article',
-          component: () => import('#/views/system/statistics/integrative/panel.vue'),
+          component: () => import('#/views/system/statistics/integrative/referenced-article.vue'),
           meta: {
             title: '被引文章查询',
             order: 9,
@@ -128,7 +117,7 @@ const routes: RouteRecordRaw[] = [
         {
           name: 'StatisticsIntegrativeReviewCycle',
           path: 'review-cycle',
-          component: () => import('#/views/system/statistics/integrative/panel.vue'),
+          component: () => import('#/views/system/statistics/integrative/review-cycle.vue'),
           meta: {
             title: '审稿周期统计',
             order: 10,
@@ -139,7 +128,7 @@ const routes: RouteRecordRaw[] = [
         {
           name: 'StatisticsIntegrativeUser',
           path: 'user',
-          component: () => import('#/views/system/statistics/integrative/panel.vue'),
+          component: () => import('#/views/system/statistics/integrative/user.vue'),
           meta: {
             title: '用户统计',
             order: 11,

@@ -89,6 +89,759 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by receive_time desc
     </select>
 
+    <resultMap type="StatAuditCycle" id="StatAuditCycleResult">
+        <id     property="manuscriptId"   column="manuscript_id"    />
+        <result property="fileNo"         column="file_no"          />
+        <result property="title"          column="title"            />
+        <result property="authorNames"    column="author_names"     />
+        <result property="receiveTime"    column="receive_time"     />
+        <result property="conclusionTime" column="conclusion_time"  />
+        <result property="conclusion"     column="conclusion"       />
+        <result property="status"         column="status"           />
+        <result property="year"           column="year"             />
+        <result property="period"         column="period"           />
+        <result property="columnName"     column="column_name"      />
+        <result property="auditCycleDays" column="audit_cycle_days" />
+    </resultMap>
+
+    <!-- 审理周期统计：仅统计已出终审结论（conclusion_time 非空）的稿件 -->
+    <select id="selectAuditCycleList" parameterType="StatAuditCycle" resultMap="StatAuditCycleResult">
+        select m.manuscript_id, m.file_no, m.title, m.author_names, m.receive_time, m.conclusion_time,
+               m.conclusion, m.status, i.year, i.period, c.column_name,
+               datediff(m.conclusion_time, m.receive_time) as audit_cycle_days
+        from editor_manuscript m
+        left join publisher_article a on a.manuscript_id = m.manuscript_id
+        left join publisher_issue i on i.issue_id = ifnull(a.issue_id, m.issue_id)
+        left join publisher_column c on c.column_id = a.column_id
+        <where>
+            m.conclusion_time is not null
+            AND (m.is_deleted is null or m.is_deleted != '2')
+            <if test="fileNo != null and fileNo != ''">
+                AND m.file_no like concat('%', #{fileNo}, '%')
+            </if>
+            <if test="title != null and title != ''">
+                AND m.title like concat('%', #{title}, '%')
+            </if>
+            <if test="authorNames != null and authorNames != ''">
+                AND m.author_names like concat('%', #{authorNames}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND m.status = #{status}
+            </if>
+            <if test="conclusion != null and conclusion != ''">
+                AND m.conclusion like concat('%', #{conclusion}, '%')
+            </if>
+            <if test="year != null">
+                AND i.year = #{year}
+            </if>
+            <if test="period != null">
+                AND i.period = #{period}
+            </if>
+            <if test="columnName != null and columnName != ''">
+                AND c.column_name like concat('%', #{columnName}, '%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND date_format(m.receive_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND date_format(m.receive_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by m.receive_time desc
+    </select>
+
+    <resultMap type="StatPublishCycle" id="StatPublishCycleResult">
+        <id     property="manuscriptId"      column="manuscript_id"       />
+        <result property="fileNo"            column="file_no"             />
+        <result property="title"             column="title"               />
+        <result property="authorNames"       column="author_names"        />
+        <result property="year"              column="year"                />
+        <result property="period"            column="period"              />
+        <result property="columnName"        column="column_name"         />
+        <result property="pageStart"         column="page_start"          />
+        <result property="pageEnd"           column="page_end"            />
+        <result property="paperPublishTime"  column="paper_publish_time"  />
+        <result property="onlinePublishTime" column="online_publish_time" />
+        <result property="status"            column="status"              />
+    </resultMap>
+
+    <!-- 出版周期统计：已排期 / 已发表 / 有出版时间的稿件 -->
+    <select id="selectPublishCycleList" parameterType="StatPublishCycle" resultMap="StatPublishCycleResult">
+        select m.manuscript_id, m.file_no, m.title, m.author_names, m.status,
+               i.year, i.period, c.column_name,
+               ifnull(a.page_start, m.page_start) as page_start,
+               ifnull(a.page_end, m.page_end) as page_end,
+               i.publish_date as paper_publish_time,
+               coalesce(a.publish_time, m.publish_time) as online_publish_time
+        from editor_manuscript m
+        left join publisher_article a on a.manuscript_id = m.manuscript_id
+        left join publisher_issue i on i.issue_id = ifnull(a.issue_id, m.issue_id)
+        left join publisher_column c on c.column_id = a.column_id
+        <where>
+            (m.is_deleted is null or m.is_deleted != '2')
+            AND (
+                i.issue_id is not null
+                OR a.article_id is not null
+                OR m.publish_time is not null
+                OR m.status in ('06', '08', '09')
+            )
+            <if test="fileNo != null and fileNo != ''">
+                AND m.file_no like concat('%', #{fileNo}, '%')
+            </if>
+            <if test="title != null and title != ''">
+                AND m.title like concat('%', #{title}, '%')
+            </if>
+            <if test="authorNames != null and authorNames != ''">
+                AND m.author_names like concat('%', #{authorNames}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND m.status = #{status}
+            </if>
+            <if test="year != null">
+                AND i.year = #{year}
+            </if>
+            <if test="period != null">
+                AND i.period = #{period}
+            </if>
+            <if test="columnName != null and columnName != ''">
+                AND c.column_name like concat('%', #{columnName}, '%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND date_format(coalesce(a.publish_time, m.publish_time, i.publish_date),'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND date_format(coalesce(a.publish_time, m.publish_time, i.publish_date),'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by coalesce(a.publish_time, m.publish_time, i.publish_date) desc, m.manuscript_id desc
+    </select>
+
+    <resultMap type="StatEditProcessCycle" id="StatEditProcessCycleResult">
+        <id     property="manuscriptId"          column="manuscript_id"             />
+        <result property="fileNo"                column="file_no"                   />
+        <result property="title"                 column="title"                     />
+        <result property="authorNames"           column="author_names"              />
+        <result property="editorName"            column="editor_name"               />
+        <result property="conclusionTime"        column="conclusion_time"           />
+        <result property="conclusion"            column="conclusion"                />
+        <result property="status"                column="status"                    />
+        <result property="responsibleEditor"     column="responsible_editor"        />
+        <result property="year"                  column="year"                      />
+        <result property="period"                column="period"                    />
+        <result property="columnName"            column="column_name"               />
+        <result property="editProcessCycleDays"  column="edit_process_cycle_days"   />
+        <result property="assignTime"            column="assign_time"               />
+    </resultMap>
+
+    <!-- 责编处理周期：仅统计已分配且已出终审结论的稿件（assign_time → conclusion_time） -->
+    <select id="selectEditProcessCycleList" parameterType="StatEditProcessCycle" resultMap="StatEditProcessCycleResult">
+        select m.manuscript_id, m.file_no, m.title, m.author_names, m.editor_name,
+               m.conclusion_time, m.conclusion, m.status, m.editor_name as responsible_editor,
+               m.assign_time, i.year, i.period, c.column_name,
+               datediff(m.conclusion_time, m.assign_time) as edit_process_cycle_days
+        from editor_manuscript m
+        left join publisher_article a on a.manuscript_id = m.manuscript_id
+        left join publisher_issue i on i.issue_id = ifnull(a.issue_id, m.issue_id)
+        left join publisher_column c on c.column_id = a.column_id
+        <where>
+            m.assign_time is not null
+            AND m.conclusion_time is not null
+            AND (m.is_deleted is null or m.is_deleted != '2')
+            <if test="fileNo != null and fileNo != ''">
+                AND m.file_no like concat('%', #{fileNo}, '%')
+            </if>
+            <if test="title != null and title != ''">
+                AND m.title like concat('%', #{title}, '%')
+            </if>
+            <if test="authorNames != null and authorNames != ''">
+                AND m.author_names like concat('%', #{authorNames}, '%')
+            </if>
+            <if test="editorName != null and editorName != ''">
+                AND m.editor_name like concat('%', #{editorName}, '%')
+            </if>
+            <if test="responsibleEditor != null and responsibleEditor != ''">
+                AND m.editor_name like concat('%', #{responsibleEditor}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND m.status = #{status}
+            </if>
+            <if test="conclusion != null and conclusion != ''">
+                AND m.conclusion like concat('%', #{conclusion}, '%')
+            </if>
+            <if test="year != null">
+                AND i.year = #{year}
+            </if>
+            <if test="period != null">
+                AND i.period = #{period}
+            </if>
+            <if test="columnName != null and columnName != ''">
+                AND c.column_name like concat('%', #{columnName}, '%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND date_format(m.assign_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND date_format(m.assign_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by m.assign_time desc
+    </select>
+
+    <resultMap type="StatReviewCycle" id="StatReviewCycleResult">
+        <id     property="auditId"          column="audit_id"           />
+        <result property="manuscriptId"     column="manuscript_id"      />
+        <result property="fileNo"           column="file_no"            />
+        <result property="title"            column="title"              />
+        <result property="authorNames"      column="author_names"       />
+        <result property="reviewerName"     column="reviewer_name"      />
+        <result property="columnName"       column="column_name"        />
+        <result property="reviewRound"      column="review_round"       />
+        <result property="receiveTime"      column="receive_time"       />
+        <result property="inviteTime"       column="invite_time"        />
+        <result property="auditTime"        column="audit_time"         />
+        <result property="auditResult"      column="audit_result"       />
+        <result property="reviewCycleDays"  column="review_cycle_days"  />
+        <result property="status"           column="status"             />
+    </resultMap>
+
+    <!-- 审稿周期统计：按审稿记录，仅统计已送审且已审回的记录 -->
+    <select id="selectReviewCycleList" parameterType="StatReviewCycle" resultMap="StatReviewCycleResult">
+        select a.audit_id, m.manuscript_id, m.file_no, m.title, m.author_names,
+               a.reviewer_name, c.column_name, a.review_round, m.receive_time,
+               a.invite_time, a.audit_time, a.audit_result, m.status,
+               datediff(a.audit_time, a.invite_time) as review_cycle_days
+        from editor_audit a
+        inner join editor_manuscript m on m.manuscript_id = a.manuscript_id
+        left join publisher_article pa on pa.manuscript_id = m.manuscript_id
+        left join publisher_column c on c.column_id = pa.column_id
+        <where>
+            a.invite_time is not null
+            AND a.audit_time is not null
+            AND (a.is_deleted is null or a.is_deleted != '2')
+            AND (m.is_deleted is null or m.is_deleted != '2')
+            <if test="fileNo != null and fileNo != ''">
+                AND m.file_no like concat('%', #{fileNo}, '%')
+            </if>
+            <if test="title != null and title != ''">
+                AND m.title like concat('%', #{title}, '%')
+            </if>
+            <if test="authorNames != null and authorNames != ''">
+                AND m.author_names like concat('%', #{authorNames}, '%')
+            </if>
+            <if test="reviewerName != null and reviewerName != ''">
+                AND a.reviewer_name like concat('%', #{reviewerName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND m.status = #{status}
+            </if>
+            <if test="columnName != null and columnName != ''">
+                AND c.column_name like concat('%', #{columnName}, '%')
+            </if>
+            <if test="auditResult != null and auditResult != ''">
+                AND a.audit_result = #{auditResult}
+            </if>
+            <if test="reviewRound != null">
+                AND a.review_round = #{reviewRound}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND date_format(a.invite_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND date_format(a.invite_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by a.invite_time desc, a.audit_id desc
+    </select>
+
+    <resultMap type="StatEditArticleCycle" id="StatEditArticleCycleResult">
+        <id     property="editId"                column="edit_id"                  />
+        <result property="manuscriptId"          column="manuscript_id"            />
+        <result property="fileNo"                column="file_no"                  />
+        <result property="title"                 column="title"                    />
+        <result property="authorNames"           column="author_names"             />
+        <result property="status"                column="status"                   />
+        <result property="editorName"            column="editor_name"              />
+        <result property="editEndTime"           column="edit_end_time"            />
+        <result property="editStartTime"         column="edit_start_time"          />
+        <result property="year"                  column="year"                     />
+        <result property="period"                column="period"                   />
+        <result property="columnName"            column="column_name"              />
+        <result property="editArticleCycleDays"  column="edit_article_cycle_days"  />
+        <result property="editStatus"            column="edit_status"              />
+    </resultMap>
+
+    <!-- 加工周期统计：仅统计已完成编辑加工（edit_end_time 非空）的记录 -->
+    <select id="selectEditArticleCycleList" parameterType="StatEditArticleCycle" resultMap="StatEditArticleCycleResult">
+        select e.edit_id, m.manuscript_id, m.file_no, m.title, m.author_names, m.status,
+               ifnull(nullif(e.editor_name, ''), m.editor_name) as editor_name,
+               e.edit_end_time, e.edit_start_time, e.edit_status,
+               i.year, i.period, c.column_name,
+               datediff(e.edit_end_time, e.edit_start_time) as edit_article_cycle_days
+        from editor_edit e
+        inner join editor_manuscript m on m.manuscript_id = e.manuscript_id
+        left join publisher_article a on a.manuscript_id = m.manuscript_id
+        left join publisher_issue i on i.issue_id = ifnull(a.issue_id, m.issue_id)
+        left join publisher_column c on c.column_id = a.column_id
+        <where>
+            e.edit_end_time is not null
+            AND e.edit_start_time is not null
+            AND (m.is_deleted is null or m.is_deleted != '2')
+            <if test="fileNo != null and fileNo != ''">
+                AND m.file_no like concat('%', #{fileNo}, '%')
+            </if>
+            <if test="title != null and title != ''">
+                AND m.title like concat('%', #{title}, '%')
+            </if>
+            <if test="authorNames != null and authorNames != ''">
+                AND m.author_names like concat('%', #{authorNames}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND m.status = #{status}
+            </if>
+            <if test="editorName != null and editorName != ''">
+                AND ifnull(nullif(e.editor_name, ''), m.editor_name) like concat('%', #{editorName}, '%')
+            </if>
+            <if test="editStatus != null and editStatus != ''">
+                AND e.edit_status = #{editStatus}
+            </if>
+            <if test="year != null">
+                AND i.year = #{year}
+            </if>
+            <if test="period != null">
+                AND i.period = #{period}
+            </if>
+            <if test="columnName != null and columnName != ''">
+                AND c.column_name like concat('%', #{columnName}, '%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND date_format(e.edit_end_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND date_format(e.edit_end_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by e.edit_end_time desc
+    </select>
+
+    <!-- 期刊统计：按收稿时间区间聚合稿件量、退稿细分、送审/基金及审次 -->
+    <select id="selectJournalTotal" parameterType="StatJournalQuery" resultType="StatJournalTotal">
+        select
+            count(*) as receiveCount,
+            sum(case when m.status = '08' or m.publish_time is not null then 1 else 0 end) as publishCount,
+            sum(case when m.status = '07' then 1 else 0 end) as rejectCount,
+            sum(case when m.status = '07'
+                and not exists (
+                    select 1 from editor_manuscript_log l
+                    where l.manuscript_id = m.manuscript_id and l.log_type = '03'
+                ) then 1 else 0 end) as initialRejectCount,
+            sum(case when m.status = '07'
+                and exists (
+                    select 1 from editor_manuscript_log l
+                    where l.manuscript_id = m.manuscript_id and l.log_type = '03'
+                )
+                and ifnull(m.revision_count, 0) = 0 then 1 else 0 end) as reviewRejectCount,
+            sum(case when m.status = '07'
+                and ifnull(m.revision_count, 0) &gt; 0 then 1 else 0 end) as reReviewRejectCount,
+            sum(case when m.status = '07'
+                and exists (
+                    select 1 from editor_manuscript_log l
+                    where l.manuscript_id = m.manuscript_id and l.log_type = '07'
+                ) then 1 else 0 end) as finalRejectCount,
+            sum(case when m.status in ('06', '08', '09') then 1 else 0 end) as adoptCount,
+            sum(case when m.review_start_time is not null
+                or exists (
+                    select 1 from editor_manuscript_log l
+                    where l.manuscript_id = m.manuscript_id and l.log_type = '03'
+                ) then 1 else 0 end) as sendReviewCount,
+            sum(case when m.fund_project is not null and m.fund_project != '' then 1 else 0 end) as fundCount,
+            (
+                select count(*)
+                from editor_manuscript_log l
+                inner join editor_manuscript m2 on m2.manuscript_id = l.manuscript_id
+                where l.log_type = '02'
+                  and (m2.is_deleted is null or m2.is_deleted != '2')
+                <if test="beginTime != null and beginTime != ''">
+                  and date_format(l.operate_time,'%Y%m%d') &gt;= date_format(#{beginTime},'%Y%m%d')
+                </if>
+                <if test="endTime != null and endTime != ''">
+                  and date_format(l.operate_time,'%Y%m%d') &lt;= date_format(#{endTime},'%Y%m%d')
+                </if>
+            ) as initialReviewTimes,
+            (
+                select count(*)
+                from editor_audit a
+                inner join editor_manuscript m3 on m3.manuscript_id = a.manuscript_id
+                where (a.is_deleted is null or a.is_deleted != '2')
+                  and (m3.is_deleted is null or m3.is_deleted != '2')
+                <if test="beginTime != null and beginTime != ''">
+                  and date_format(ifnull(a.audit_time, a.invite_time),'%Y%m%d') &gt;= date_format(#{beginTime},'%Y%m%d')
+                </if>
+                <if test="endTime != null and endTime != ''">
+                  and date_format(ifnull(a.audit_time, a.invite_time),'%Y%m%d') &lt;= date_format(#{endTime},'%Y%m%d')
+                </if>
+            ) as peerReviewTimes,
+            (
+                select count(*)
+                from editor_audit a
+                inner join editor_manuscript m4 on m4.manuscript_id = a.manuscript_id
+                where ifnull(a.review_round, 1) &gt; 1
+                  and (a.is_deleted is null or a.is_deleted != '2')
+                  and (m4.is_deleted is null or m4.is_deleted != '2')
+                <if test="beginTime != null and beginTime != ''">
+                  and date_format(ifnull(a.audit_time, a.invite_time),'%Y%m%d') &gt;= date_format(#{beginTime},'%Y%m%d')
+                </if>
+                <if test="endTime != null and endTime != ''">
+                  and date_format(ifnull(a.audit_time, a.invite_time),'%Y%m%d') &lt;= date_format(#{endTime},'%Y%m%d')
+                </if>
+            ) as reReviewTimes,
+            (
+                select count(*)
+                from editor_manuscript_log l
+                inner join editor_manuscript m5 on m5.manuscript_id = l.manuscript_id
+                where l.log_type in ('07', '08')
+                  and (m5.is_deleted is null or m5.is_deleted != '2')
+                <if test="beginTime != null and beginTime != ''">
+                  and date_format(l.operate_time,'%Y%m%d') &gt;= date_format(#{beginTime},'%Y%m%d')
+                </if>
+                <if test="endTime != null and endTime != ''">
+                  and date_format(l.operate_time,'%Y%m%d') &lt;= date_format(#{endTime},'%Y%m%d')
+                </if>
+            ) as finalReviewTimes
+        from editor_manuscript m
+        <where>
+            (m.is_deleted is null or m.is_deleted != '2')
+            <if test="beginTime != null and beginTime != ''">
+                and date_format(m.receive_time,'%Y%m%d') &gt;= date_format(#{beginTime},'%Y%m%d')
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and date_format(m.receive_time,'%Y%m%d') &lt;= date_format(#{endTime},'%Y%m%d')
+            </if>
+        </where>
+    </select>
+
+    <!-- 责编工作量：按责任编辑分组，按当前状态分列计数 -->
+    <select id="selectEditWorkList" parameterType="StatEditWorkQuery" resultType="StatEditWork">
+        select
+            m.editor_id as editorId,
+            case when m.editor_id is null then '未分配'
+                 when ifnull(m.editor_name, '') = '' then '未分配'
+                 else m.editor_name end as editorName,
+            ifnull(d.dept_name, '') as deptName,
+            count(*) as totalCount,
+            sum(case when m.status in ('01', '02') then 1 else 0 end) as notSentCount,
+            sum(case when m.status = '04' then 1 else 0 end) as reviseCount,
+            sum(case when m.status = '05' then 1 else 0 end) as resubmittedCount,
+            sum(case when m.status = '03'
+                and ifnull(a.pending_count, 0) = 0
+                and ifnull(a.returned_count, 0) = 0 then 1 else 0 end) as reviewingCount,
+            sum(case when m.status = '03'
+                and ifnull(a.pending_count, 0) = 0
+                and ifnull(a.returned_count, 0) &gt; 0 then 1 else 0 end) as returnedCount,
+            sum(case when m.status = '03'
+                and ifnull(a.pending_count, 0) &gt; 0 then 1 else 0 end) as notReturnedCount,
+            sum(case when m.status = '06' then 1 else 0 end) as adoptCount,
+            sum(case when m.status = '07' then 1 else 0 end) as rejectCount,
+            sum(case when m.status in ('08', '09') then 1 else 0 end) as publishCount
+        from editor_manuscript m
+        left join sys_user u on u.user_id = m.editor_id and u.del_flag = '0'
+        left join sys_dept d on d.dept_id = u.dept_id and d.del_flag = '0'
+        left join (
+            select
+                manuscript_id,
+                sum(case when audit_status = '0' then 1 else 0 end) as pending_count,
+                sum(case when audit_status = '1' then 1 else 0 end) as returned_count
+            from editor_audit
+            where is_deleted is null or is_deleted != '2'
+            group by manuscript_id
+        ) a on a.manuscript_id = m.manuscript_id
+        <where>
+            (m.is_deleted is null or m.is_deleted != '2')
+            <if test="beginTime != null and beginTime != ''">
+                and date_format(
+                <choose>
+                    <when test="dateField == 'assignTime'">m.assign_time</when>
+                    <when test="dateField == 'reviewStartTime'">m.review_start_time</when>
+                    <when test="dateField == 'conclusionTime'">m.conclusion_time</when>
+                    <when test="dateField == 'publishTime'">m.publish_time</when>
+                    <otherwise>m.receive_time</otherwise>
+                </choose>
+                ,'%Y%m%d') &gt;= date_format(#{beginTime},'%Y%m%d')
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and date_format(
+                <choose>
+                    <when test="dateField == 'assignTime'">m.assign_time</when>
+                    <when test="dateField == 'reviewStartTime'">m.review_start_time</when>
+                    <when test="dateField == 'conclusionTime'">m.conclusion_time</when>
+                    <when test="dateField == 'publishTime'">m.publish_time</when>
+                    <otherwise>m.receive_time</otherwise>
+                </choose>
+                ,'%Y%m%d') &lt;= date_format(#{endTime},'%Y%m%d')
+            </if>
+        </where>
+        group by m.editor_id, m.editor_name, d.dept_name
+        order by case when m.editor_id is null then 0 else 1 end, m.editor_name
+    </select>
+
+    <!--
+      责编加工工作量：以编辑加工记录为基表按责任编辑汇总
+      阶段映射：
+        编辑加工 — editor_edit.edit_status（0/1 未完成，2 已完成）
+        排版     — editor_sign.layout_file_path（空=未完成，有路径=已完成；仅统计已完成编辑加工的稿件）
+        校对     — 已排版后至签发前为未完成，已签发为已完成（暂无独立校对表，以签发状态近似）
+        定版确认 — editor_sign.sign_status（0 未完成，1 已完成；仅统计已排版稿件）
+    -->
+    <select id="selectEditProductionList" parameterType="StatEditProductionQuery" resultType="StatEditProduction">
+        select
+            coalesce(e.editor_id, m.editor_id) as editorId,
+            case
+                when coalesce(e.editor_id, m.editor_id) is null then '未分配'
+                when ifnull(nullif(e.editor_name, ''), ifnull(m.editor_name, '')) = '' then '未分配'
+                else ifnull(nullif(e.editor_name, ''), m.editor_name)
+            end as editorName,
+            sum(case when e.edit_status in ('0', '1') then 1 else 0 end) as editUnfinishedCount,
+            sum(case when e.edit_status = '2' then 1 else 0 end) as editFinishedCount,
+            sum(case when e.edit_status in ('0', '1')
+                then ifnull(nullif(e.word_count_before, 0), ifnull(m.word_count, 0)) else 0 end) as editUnfinishedWords,
+            sum(case when e.edit_status = '2'
+                then ifnull(nullif(e.word_count_after, 0), ifnull(nullif(e.word_count_before, 0), ifnull(m.word_count, 0)))
+                else 0 end) as editFinishedWords,
+            sum(case when e.edit_status = '2'
+                and (s.layout_file_path is null or s.layout_file_path = '') then 1 else 0 end) as layoutUnfinishedCount,
+            sum(case when s.layout_file_path is not null and s.layout_file_path != '' then 1 else 0 end) as layoutFinishedCount,
+            sum(case when e.edit_status = '2'
+                and (s.layout_file_path is null or s.layout_file_path = '')
+                then ifnull(nullif(e.word_count_after, 0), ifnull(nullif(e.word_count_before, 0), ifnull(m.word_count, 0)))
+                else 0 end) as layoutUnfinishedWords,
+            sum(case when s.layout_file_path is not null and s.layout_file_path != ''
+                then ifnull(nullif(e.word_count_after, 0), ifnull(nullif(e.word_count_before, 0), ifnull(m.word_count, 0)))
+                else 0 end) as layoutFinishedWords,
+            sum(case when s.layout_file_path is not null and s.layout_file_path != ''
+                and ifnull(s.sign_status, '0') = '0' then 1 else 0 end) as proofUnfinishedCount,
+            sum(case when s.layout_file_path is not null and s.layout_file_path != ''
+                and s.sign_status = '1' then 1 else 0 end) as proofFinishedCount,
+            sum(case when s.layout_file_path is not null and s.layout_file_path != ''
+                and ifnull(s.sign_status, '0') = '0'
+                then ifnull(nullif(e.word_count_after, 0), ifnull(nullif(e.word_count_before, 0), ifnull(m.word_count, 0)))
+                else 0 end) as proofUnfinishedWords,
+            sum(case when s.layout_file_path is not null and s.layout_file_path != ''
+                and s.sign_status = '1'
+                then ifnull(nullif(e.word_count_after, 0), ifnull(nullif(e.word_count_before, 0), ifnull(m.word_count, 0)))
+                else 0 end) as proofFinishedWords,
+            sum(case when s.layout_file_path is not null and s.layout_file_path != ''
+                and ifnull(s.sign_status, '0') = '0' then 1 else 0 end) as finalizeUnfinishedCount,
+            sum(case when s.sign_status = '1' then 1 else 0 end) as finalizeFinishedCount,
+            sum(case when s.layout_file_path is not null and s.layout_file_path != ''
+                and ifnull(s.sign_status, '0') = '0'
+                then ifnull(nullif(e.word_count_after, 0), ifnull(nullif(e.word_count_before, 0), ifnull(m.word_count, 0)))
+                else 0 end) as finalizeUnfinishedWords,
+            sum(case when s.sign_status = '1'
+                then ifnull(nullif(e.word_count_after, 0), ifnull(nullif(e.word_count_before, 0), ifnull(m.word_count, 0)))
+                else 0 end) as finalizeFinishedWords
+        from editor_edit e
+        inner join editor_manuscript m on m.manuscript_id = e.manuscript_id
+        left join editor_sign s on s.manuscript_id = e.manuscript_id
+        <where>
+            (m.is_deleted is null or m.is_deleted != '2')
+            <if test="beginTime != null and beginTime != ''">
+                and date_format(
+                <choose>
+                    <when test="dateField == 'editStartTime'">ifnull(e.edit_start_time, e.create_time)</when>
+                    <when test="dateField == 'createTime'">e.create_time</when>
+                    <otherwise>
+                        case
+                            when e.edit_status = '2' and e.edit_end_time is not null then e.edit_end_time
+                            else ifnull(e.edit_start_time, e.create_time)
+                        end
+                    </otherwise>
+                </choose>
+                ,'%Y%m%d') &gt;= date_format(#{beginTime},'%Y%m%d')
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and date_format(
+                <choose>
+                    <when test="dateField == 'editStartTime'">ifnull(e.edit_start_time, e.create_time)</when>
+                    <when test="dateField == 'createTime'">e.create_time</when>
+                    <otherwise>
+                        case
+                            when e.edit_status = '2' and e.edit_end_time is not null then e.edit_end_time
+                            else ifnull(e.edit_start_time, e.create_time)
+                        end
+                    </otherwise>
+                </choose>
+                ,'%Y%m%d') &lt;= date_format(#{endTime},'%Y%m%d')
+            </if>
+        </where>
+        group by coalesce(e.editor_id, m.editor_id),
+                 case
+                     when coalesce(e.editor_id, m.editor_id) is null then '未分配'
+                     when ifnull(nullif(e.editor_name, ''), ifnull(m.editor_name, '')) = '' then '未分配'
+                     else ifnull(nullif(e.editor_name, ''), m.editor_name)
+                 end
+        order by (editorId is null), editorName
+    </select>
+
+    <!-- 用户统计：按系统用户聚合投稿（作者）与审稿（审稿人）数据 -->
+    <select id="selectUserStatList" parameterType="StatUserQuery" resultType="StatUser">
+        select
+            u.user_id as userId,
+            u.user_name as userName,
+            coalesce(nullif(u.nick_name, ''), nullif(au.real_name, ''), nullif(rv.real_name, ''), u.user_name) as realName,
+            coalesce(nullif(au.affiliation, ''), nullif(rv.affiliation, ''), '') as affiliation,
+            coalesce(nullif(u.email, ''), nullif(au.email, ''), nullif(rv.email, ''), '') as email,
+            ifnull(sub.submission_count, 0) as submissionCount,
+            ifnull(sub.publish_count, 0) as publishCount,
+            ifnull(rev.review_manuscript_count, 0) as reviewManuscriptCount,
+            ifnull(rev.review_times, 0) as reviewTimes,
+            ifnull(rev.completed_count, 0) as completedReviewCount,
+            ifnull(rev.score_avg, 0) as reviewScoreAvg,
+            ifnull(rev.accepted_count, 0) as acceptedCount
+        from sys_user u
+        left join editor_author au on au.user_id = u.user_id and (au.is_deleted is null or au.is_deleted != '2')
+        left join editor_reviewer rv on rv.user_id = u.user_id and (rv.is_deleted is null or rv.is_deleted != '2')
+        left join (
+            select ea.user_id,
+                count(distinct m.manuscript_id) as submission_count,
+                count(distinct case when m.status in ('08', '09') or m.publish_time is not null
+                    then m.manuscript_id end) as publish_count
+            from editor_author ea
+            inner join editor_manuscript m on find_in_set(ea.author_id, m.author_ids)
+            where ea.user_id is not null
+              and (ea.is_deleted is null or ea.is_deleted != '2')
+              and (m.is_deleted is null or m.is_deleted != '2')
+            <if test="beginTime != null and beginTime != ''">
+              and date_format(m.receive_time,'%Y%m%d') &gt;= date_format(#{beginTime},'%Y%m%d')
+            </if>
+            <if test="endTime != null and endTime != ''">
+              and date_format(m.receive_time,'%Y%m%d') &lt;= date_format(#{endTime},'%Y%m%d')
+            </if>
+            group by ea.user_id
+        ) sub on sub.user_id = u.user_id
+        left join (
+            select er.user_id,
+                count(distinct a.manuscript_id) as review_manuscript_count,
+                count(a.audit_id) as review_times,
+                sum(case when a.audit_status = '1' then 1 else 0 end) as completed_count,
+                round(avg(a.audit_score), 1) as score_avg,
+                sum(case when a.audit_time is not null or a.audit_status in ('1', '2', '3')
+                    then 1 else 0 end) as accepted_count
+            from editor_reviewer er
+            inner join editor_audit a on a.reviewer_id = er.reviewer_id
+            where er.user_id is not null
+              and (er.is_deleted is null or er.is_deleted != '2')
+              and (a.is_deleted is null or a.is_deleted != '2')
+            <if test="beginTime != null and beginTime != ''">
+              and date_format(ifnull(a.audit_time, a.invite_time),'%Y%m%d') &gt;= date_format(#{beginTime},'%Y%m%d')
+            </if>
+            <if test="endTime != null and endTime != ''">
+              and date_format(ifnull(a.audit_time, a.invite_time),'%Y%m%d') &lt;= date_format(#{endTime},'%Y%m%d')
+            </if>
+            group by er.user_id
+        ) rev on rev.user_id = u.user_id
+        <where>
+            u.del_flag = '0'
+            and (au.author_id is not null or rv.reviewer_id is not null)
+            <if test="userName != null and userName != ''">
+                and u.user_name like concat('%', #{userName}, '%')
+            </if>
+            <if test="realName != null and realName != ''">
+                and coalesce(nullif(u.nick_name, ''), nullif(au.real_name, ''), nullif(rv.real_name, ''))
+                    like concat('%', #{realName}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                and coalesce(nullif(u.email, ''), nullif(au.email, ''), nullif(rv.email, ''))
+                    like concat('%', #{email}, '%')
+            </if>
+            <if test="role == 'author'">
+                and ifnull(sub.submission_count, 0) &gt; 0
+            </if>
+            <if test="role == 'reviewer'">
+                and ifnull(rev.review_manuscript_count, 0) &gt; 0
+            </if>
+        </where>
+        order by (ifnull(sub.submission_count, 0) + ifnull(rev.review_times, 0)) desc, u.user_id
+    </select>
+
+    <!-- 审稿统计：按审稿人聚合审回/复审/周期/得分等 -->
+    <select id="selectReviewerAuditList" parameterType="StatReviewerAuditQuery" resultType="StatReviewerAudit">
+        select
+            rv.reviewer_id as reviewerId,
+            rv.user_id as userId,
+            coalesce(nullif(u.user_name, ''), nullif(rv.email, ''), '') as userName,
+            coalesce(nullif(rv.real_name, ''), nullif(u.nick_name, ''), '') as realName,
+            ifnull(rv.affiliation, '') as affiliation,
+            coalesce(nullif(rv.mobile, ''), nullif(rv.phone, ''), nullif(u.phonenumber, ''), '') as mobile,
+            coalesce(nullif(rv.email, ''), nullif(u.email, ''), '') as email,
+            '' as idCard,
+            ifnull(rv.expertise_fields, '') as expertiseFields,
+            ifnull(rv.research_direction, '') as searchKeywords,
+            ifnull(rv.status, '') as permissionLevel,
+            ifnull(rv.accept_rate, 0) as reputation,
+            ifnull(agg.returned_count, 0) as returnedCount,
+            ifnull(agg.re_review_returned_count, 0) as reReviewReturnedCount,
+            ifnull(agg.returned_manuscript_count, 0) as returnedManuscriptCount,
+            ifnull(agg.review_cycle_days, 0) as reviewCycleDays,
+            ifnull(agg.score_avg, ifnull(rv.review_score_avg, 0)) as reviewScoreAvg,
+            ifnull(agg.return_rate, 0) as returnRate,
+            0 as reviewFee
+        from editor_reviewer rv
+        left join sys_user u on u.user_id = rv.user_id and u.del_flag = '0'
+        left join (
+            select
+                a.reviewer_id,
+                sum(case when a.audit_status = '1' then 1 else 0 end) as returned_count,
+                sum(case when a.audit_status = '1' and ifnull(a.review_round, 1) &gt; 1 then 1 else 0 end) as re_review_returned_count,
+                count(distinct case when a.audit_status = '1' then a.manuscript_id end) as returned_manuscript_count,
+                round(avg(case
+                    when a.audit_status = '1' and a.audit_time is not null and a.invite_time is not null
+                    then timestampdiff(day, a.invite_time, a.audit_time)
+                end), 0) as review_cycle_days,
+                round(avg(case when a.audit_status = '1' then a.audit_score end), 1) as score_avg,
+                round(
+                    case when count(a.audit_id) = 0 then 0
+                    else sum(case when a.audit_status = '1' then 1 else 0 end) * 100.0 / count(a.audit_id)
+                    end
+                , 0) as return_rate
+            from editor_audit a
+            where (a.is_deleted is null or a.is_deleted != '2')
+            <if test="beginTime != null and beginTime != ''">
+              and date_format(ifnull(a.audit_time, a.invite_time),'%Y%m%d') &gt;= date_format(#{beginTime},'%Y%m%d')
+            </if>
+            <if test="endTime != null and endTime != ''">
+              and date_format(ifnull(a.audit_time, a.invite_time),'%Y%m%d') &lt;= date_format(#{endTime},'%Y%m%d')
+            </if>
+            group by a.reviewer_id
+        ) agg on agg.reviewer_id = rv.reviewer_id
+        <where>
+            (rv.is_deleted is null or rv.is_deleted != '2')
+            <if test="userName != null and userName != ''">
+                and coalesce(nullif(u.user_name, ''), nullif(rv.email, '')) like concat('%', #{userName}, '%')
+            </if>
+            <if test="realName != null and realName != ''">
+                and coalesce(nullif(rv.real_name, ''), nullif(u.nick_name, '')) like concat('%', #{realName}, '%')
+            </if>
+            <if test="affiliation != null and affiliation != ''">
+                and rv.affiliation like concat('%', #{affiliation}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                and coalesce(nullif(rv.email, ''), nullif(u.email, '')) like concat('%', #{email}, '%')
+            </if>
+            <if test="mobile != null and mobile != ''">
+                and coalesce(nullif(rv.mobile, ''), nullif(rv.phone, ''), nullif(u.phonenumber, '')) like concat('%', #{mobile}, '%')
+            </if>
+            <if test="expertiseFields != null and expertiseFields != ''">
+                and rv.expertise_fields like concat('%', #{expertiseFields}, '%')
+            </if>
+            <if test="searchKeywords != null and searchKeywords != ''">
+                and rv.research_direction like concat('%', #{searchKeywords}, '%')
+            </if>
+            <if test="permissionLevel != null and permissionLevel != ''">
+                and rv.status = #{permissionLevel}
+            </if>
+        </where>
+        order by ifnull(agg.returned_count, 0) desc, rv.reviewer_id
+    </select>
+
     <select id="selectManuscriptById" parameterType="Long" resultMap="EditorManuscriptResult">
         <include refid="selectEditorManuscriptVo"/>
         where manuscript_id = #{manuscriptId}
@@ -174,5 +927,53 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{manuscriptId}
         </foreach>
     </delete>
+
+    <resultMap type="StatReferencedArticle" id="StatReferencedArticleResult">
+        <id     property="articleId"       column="article_id"        />
+        <result property="title"           column="title"             />
+        <result property="authorNames"     column="author_names"      />
+        <result property="year"            column="year"              />
+        <result property="period"          column="period"            />
+        <result property="pageStart"       column="page_start"        />
+        <result property="pageEnd"         column="page_end"          />
+        <result property="citedCount"      column="cited_count"       />
+        <result property="selfCitedCount"  column="self_cited_count"  />
+        <result property="otherCitedCount" column="other_cited_count" />
+    </resultMap>
+
+    <!-- 被引文章查询：已刊发文章 + 引用计数（被引/自引/他引） -->
+    <select id="selectReferencedArticleList" parameterType="StatReferencedArticle" resultMap="StatReferencedArticleResult">
+        select a.article_id, a.title, a.author_names, i.year, i.period,
+               a.page_start, a.page_end,
+               ifnull(a.cited_count, 0) as cited_count,
+               ifnull(a.self_cited_count, 0) as self_cited_count,
+               ifnull(
+                   a.other_cited_count,
+                   greatest(ifnull(a.cited_count, 0) - ifnull(a.self_cited_count, 0), 0)
+               ) as other_cited_count
+        from publisher_article a
+        left join publisher_issue i on i.issue_id = a.issue_id
+        <where>
+            <if test="title != null and title != ''">
+                AND a.title like concat('%', #{title}, '%')
+            </if>
+            <if test="authorNames != null and authorNames != ''">
+                AND a.author_names like concat('%', #{authorNames}, '%')
+            </if>
+            <if test="year != null">
+                AND i.year = #{year}
+            </if>
+            <if test="period != null">
+                AND i.period = #{period}
+            </if>
+            <if test="params.beginYear != null and params.beginYear != ''">
+                AND i.year &gt;= #{params.beginYear}
+            </if>
+            <if test="params.endYear != null and params.endYear != ''">
+                AND i.year &lt;= #{params.endYear}
+            </if>
+        </where>
+        order by ifnull(a.cited_count, 0) desc, i.year desc, i.period desc, a.article_id desc
+    </select>
 
 </mapper>

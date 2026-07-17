@@ -8,6 +8,7 @@ public interface EditorGroupMapper {
     public EditorGroup selectGroupById(Long groupId);
     public int insertGroup(EditorGroup group);
     public int updateGroup(EditorGroup group);
+    public int updateGroupStatus(EditorGroup group);
     public int deleteGroupById(Long groupId);
     public int deleteGroupByIds(Long[] groupIds);
 }

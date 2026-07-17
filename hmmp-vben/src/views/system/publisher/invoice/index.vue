@@ -122,30 +122,29 @@ onMounted(() => {
 
 <template>
   <div class="p-4">
-    <a-form layout="inline" class="mb-4">
-      <a-form-item label="发票号">
-        <a-input v-model:value="searchForm.invoiceNo" placeholder="请输入发票号" style="width: 160px" />
-      </a-form-item>
-      <a-form-item label="抬头">
-        <a-input v-model:value="searchForm.title" placeholder="请输入抬头" style="width: 160px" />
-      </a-form-item>
-      <a-form-item label="申请状态">
-        <a-select v-model:value="searchForm.applyStatus" placeholder="请选择" allow-clear style="width: 120px">
-          <a-select-option value="0">待审核</a-select-option>
-          <a-select-option value="1">已通过</a-select-option>
-          <a-select-option value="2">已驳回</a-select-option>
-        </a-select>
-      </a-form-item>
-      <a-form-item>
-        <a-space>
-          <a-button type="primary" @click="handleSearch">查询</a-button>
-          <a-button @click="handleReset">重置</a-button>
-        </a-space>
-      </a-form-item>
-    </a-form>
-
-    <div class="mb-4">
+    <div class="mb-4 flex items-center justify-between">
       <a-button type="primary" @click="handleAdd">新增发票</a-button>
+      <a-form layout="inline">
+        <a-form-item label="发票号">
+          <a-input v-model:value="searchForm.invoiceNo" placeholder="请输入发票号" style="width: 160px" />
+        </a-form-item>
+        <a-form-item label="抬头">
+          <a-input v-model:value="searchForm.title" placeholder="请输入抬头" style="width: 160px" />
+        </a-form-item>
+        <a-form-item label="申请状态">
+          <a-select v-model:value="searchForm.applyStatus" placeholder="请选择" allow-clear style="width: 120px">
+            <a-select-option value="0">待审核</a-select-option>
+            <a-select-option value="1">已通过</a-select-option>
+            <a-select-option value="2">已驳回</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button type="primary" @click="handleSearch">查询</a-button>
+            <a-button @click="handleReset">重置</a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
     </div>
 
     <a-table

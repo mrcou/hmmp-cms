@@ -9,20 +9,46 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="manuscriptId"    column="manuscript_id"     />
         <result property="issueId"         column="issue_id"          />
         <result property="columnId"        column="column_id"         />
+        <result property="journalCode"     column="journal_code"      />
+        <result property="fileNo"          column="file_no"           />
         <result property="title"           column="title"             />
+        <result property="titleEn"         column="title_en"          />
         <result property="subtitle"        column="subtitle"          />
         <result property="authorNames"     column="author_names"      />
+        <result property="authorNamesEn"   column="author_names_en"   />
+        <result property="authorOrgZh"     column="author_org_zh"     />
+        <result property="authorOrgEn"     column="author_org_en"     />
+        <result property="doi"             column="doi"               />
         <result property="abstractText"    column="abstract"          />
+        <result property="abstractEn"      column="abstract_en"       />
         <result property="keywords"        column="keywords"          />
+        <result property="keywordsEn"      column="keywords_en"       />
+        <result property="fundZh"          column="fund_zh"           />
+        <result property="fundEn"          column="fund_en"           />
         <result property="content"         column="content"           />
+        <result property="referenceText"   column="reference_text"    />
+        <result property="citationText"    column="citation_text"     />
         <result property="pageStart"       column="page_start"        />
         <result property="pageEnd"         column="page_end"          />
         <result property="wordCount"       column="word_count"        />
+        <result property="submitTime"      column="submit_time"       />
+        <result property="lastModifyTime"  column="last_modify_time"  />
+        <result property="volume"          column="volume"            />
+        <result property="period"          column="period"            />
+        <result property="yearNo"          column="year_no"           />
         <result property="status"          column="status"            />
         <result property="publishTime"     column="publish_time"      />
         <result property="viewCount"       column="view_count"        />
+        <result property="downloadCount"   column="download_count"    />
+        <result property="htmlViewCount"   column="html_view_count"   />
+        <result property="citedCount"      column="cited_count"       />
+        <result property="selfCitedCount"  column="self_cited_count"  />
+        <result property="otherCitedCount" column="other_cited_count" />
+        <result property="cnkiCitedCount"  column="cnki_cited_count"  />
         <result property="cnkiTitle"       column="cnki_title"        />
         <result property="cnkiMatchStatus" column="cnki_match_status" />
+        <result property="articleUrl"      column="article_url"       />
+        <result property="pdfPath"         column="pdf_path"          />
         <result property="createBy"        column="create_by"         />
         <result property="createTime"      column="create_time"       />
         <result property="updateBy"        column="update_by"         />
@@ -31,8 +57,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectPublisherArticleVo">
-        select article_id, manuscript_id, issue_id, column_id, title, subtitle, author_names, abstract, keywords,
-               content, page_start, page_end, word_count, status, publish_time, view_count, cnki_title, cnki_match_status,
+        select article_id, manuscript_id, issue_id, column_id, journal_code, file_no, title, title_en, subtitle,
+               author_names, author_names_en, author_org_zh, author_org_en, doi, abstract, abstract_en,
+               keywords, keywords_en, fund_zh, fund_en, content, reference_text, citation_text,
+               page_start, page_end, word_count, submit_time, last_modify_time, volume, period, year_no,
+               status, publish_time, view_count, download_count, html_view_count,
+               cited_count, self_cited_count, other_cited_count, cnki_cited_count,
+               cnki_title, cnki_match_status, article_url, pdf_path,
                create_by, create_time, update_by, update_time, remark
         from publisher_article
     </sql>
@@ -42,7 +73,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <where>
             <if test="issueId != null">AND issue_id = #{issueId}</if>
             <if test="columnId != null">AND column_id = #{columnId}</if>
+            <if test="journalCode != null and journalCode != ''">AND journal_code = #{journalCode}</if>
+            <if test="fileNo != null and fileNo != ''">AND file_no = #{fileNo}</if>
             <if test="title != null and title != ''">AND title like concat('%', #{title}, '%')</if>
+            <if test="cnkiTitle != null and cnkiTitle != ''">AND cnki_title like concat('%', #{cnkiTitle}, '%')</if>
             <if test="authorNames != null and authorNames != ''">AND author_names like concat('%', #{authorNames}, '%')</if>
             <if test="keywords != null and keywords != ''">AND keywords like concat('%', #{keywords}, '%')</if>
             <if test="status != null and status != ''">AND status = #{status}</if>
@@ -56,14 +90,30 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where article_id = #{articleId}
     </select>
 
+    <select id="selectArticleByFileNo" parameterType="String" resultMap="PublisherArticleResult">
+        <include refid="selectPublisherArticleVo"/>
+        where file_no = #{fileNo}
+        limit 1
+    </select>
+
     <insert id="insertArticle" parameterType="com.hmmp.system.domain.publisher.PublisherArticle" useGeneratedKeys="true" keyProperty="articleId">
         insert into publisher_article (
-            manuscript_id, issue_id, column_id, title, subtitle, author_names, abstract, keywords,
-            content, page_start, page_end, word_count, status, publish_time, view_count, cnki_title, cnki_match_status,
+            manuscript_id, issue_id, column_id, journal_code, file_no, title, title_en, subtitle,
+            author_names, author_names_en, author_org_zh, author_org_en, doi, abstract, abstract_en,
+            keywords, keywords_en, fund_zh, fund_en, content, reference_text, citation_text,
+            page_start, page_end, word_count, submit_time, last_modify_time, volume, period, year_no,
+            status, publish_time, view_count, download_count, html_view_count,
+            cited_count, self_cited_count, other_cited_count, cnki_cited_count,
+            cnki_title, cnki_match_status, article_url, pdf_path,
             create_by, create_time, update_by, update_time, remark
         ) values (
-            #{manuscriptId}, #{issueId}, #{columnId}, #{title}, #{subtitle}, #{authorNames}, #{abstractText}, #{keywords},
-            #{content}, #{pageStart}, #{pageEnd}, #{wordCount}, #{status}, #{publishTime}, #{viewCount}, #{cnkiTitle}, #{cnkiMatchStatus},
+            #{manuscriptId}, #{issueId}, #{columnId}, #{journalCode}, #{fileNo}, #{title}, #{titleEn}, #{subtitle},
+            #{authorNames}, #{authorNamesEn}, #{authorOrgZh}, #{authorOrgEn}, #{doi}, #{abstractText}, #{abstractEn},
+            #{keywords}, #{keywordsEn}, #{fundZh}, #{fundEn}, #{content}, #{referenceText}, #{citationText},
+            #{pageStart}, #{pageEnd}, #{wordCount}, #{submitTime}, #{lastModifyTime}, #{volume}, #{period}, #{yearNo},
+            #{status}, #{publishTime}, #{viewCount}, #{downloadCount}, #{htmlViewCount},
+            #{citedCount}, #{selfCitedCount}, #{otherCitedCount}, #{cnkiCitedCount},
+            #{cnkiTitle}, #{cnkiMatchStatus}, #{articleUrl}, #{pdfPath},
             #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark}
         )
     </insert>
@@ -74,20 +124,46 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="manuscriptId != null">manuscript_id = #{manuscriptId},</if>
             <if test="issueId != null">issue_id = #{issueId},</if>
             <if test="columnId != null">column_id = #{columnId},</if>
+            <if test="journalCode != null">journal_code = #{journalCode},</if>
+            <if test="fileNo != null">file_no = #{fileNo},</if>
             <if test="title != null">title = #{title},</if>
+            <if test="titleEn != null">title_en = #{titleEn},</if>
             <if test="subtitle != null">subtitle = #{subtitle},</if>
             <if test="authorNames != null">author_names = #{authorNames},</if>
+            <if test="authorNamesEn != null">author_names_en = #{authorNamesEn},</if>
+            <if test="authorOrgZh != null">author_org_zh = #{authorOrgZh},</if>
+            <if test="authorOrgEn != null">author_org_en = #{authorOrgEn},</if>
+            <if test="doi != null">doi = #{doi},</if>
             <if test="abstractText != null">abstract = #{abstractText},</if>
+            <if test="abstractEn != null">abstract_en = #{abstractEn},</if>
             <if test="keywords != null">keywords = #{keywords},</if>
+            <if test="keywordsEn != null">keywords_en = #{keywordsEn},</if>
+            <if test="fundZh != null">fund_zh = #{fundZh},</if>
+            <if test="fundEn != null">fund_en = #{fundEn},</if>
             <if test="content != null">content = #{content},</if>
+            <if test="referenceText != null">reference_text = #{referenceText},</if>
+            <if test="citationText != null">citation_text = #{citationText},</if>
             <if test="pageStart != null">page_start = #{pageStart},</if>
             <if test="pageEnd != null">page_end = #{pageEnd},</if>
             <if test="wordCount != null">word_count = #{wordCount},</if>
+            <if test="submitTime != null">submit_time = #{submitTime},</if>
+            <if test="lastModifyTime != null">last_modify_time = #{lastModifyTime},</if>
+            <if test="volume != null">volume = #{volume},</if>
+            <if test="period != null">period = #{period},</if>
+            <if test="yearNo != null">year_no = #{yearNo},</if>
             <if test="status != null">status = #{status},</if>
             <if test="publishTime != null">publish_time = #{publishTime},</if>
             <if test="viewCount != null">view_count = #{viewCount},</if>
+            <if test="downloadCount != null">download_count = #{downloadCount},</if>
+            <if test="htmlViewCount != null">html_view_count = #{htmlViewCount},</if>
+            <if test="citedCount != null">cited_count = #{citedCount},</if>
+            <if test="selfCitedCount != null">self_cited_count = #{selfCitedCount},</if>
+            <if test="otherCitedCount != null">other_cited_count = #{otherCitedCount},</if>
+            <if test="cnkiCitedCount != null">cnki_cited_count = #{cnkiCitedCount},</if>
             <if test="cnkiTitle != null">cnki_title = #{cnkiTitle},</if>
             <if test="cnkiMatchStatus != null">cnki_match_status = #{cnkiMatchStatus},</if>
+            <if test="articleUrl != null">article_url = #{articleUrl},</if>
+            <if test="pdfPath != null">pdf_path = #{pdfPath},</if>
             update_by = #{updateBy},
             update_time = sysdate(),
             <if test="remark != null">remark = #{remark},</if>
@@ -109,8 +185,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <update id="updateCnkiStatus" parameterType="com.hmmp.system.domain.publisher.PublisherArticle">
-        update publisher_article set cnki_title = #{cnkiTitle}, cnki_match_status = #{cnkiMatchStatus}, update_time = sysdate()
+        update publisher_article
+        <set>
+            <if test="cnkiTitle != null">cnki_title = #{cnkiTitle},</if>
+            <if test="cnkiMatchStatus != null">cnki_match_status = #{cnkiMatchStatus},</if>
+            <if test="cnkiCitedCount != null">cnki_cited_count = #{cnkiCitedCount},</if>
+            update_time = sysdate()
+        </set>
         where article_id = #{articleId}
+    </update>
+
+    <update id="syncCnkiCitedCount" parameterType="Long">
+        update publisher_article
+        set cited_count = ifnull(cnki_cited_count, 0), update_time = sysdate()
+        where article_id in
+        <foreach collection="array" item="articleId" open="(" separator="," close=")">
+            #{articleId}
+        </foreach>
     </update>
 
     <delete id="deleteArticleById" parameterType="Long">

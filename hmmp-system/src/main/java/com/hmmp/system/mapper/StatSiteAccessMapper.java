@@ -2,6 +2,8 @@ package com.hmmp.system.mapper;
 
 import java.util.List;
 import com.hmmp.system.domain.StatSiteAccess;
+import com.hmmp.system.domain.StatSiteVisit;
+import com.hmmp.system.domain.StatSiteVisitQuery;
 
 /**
  * 网站访问日志 数据层
@@ -18,6 +20,13 @@ public interface StatSiteAccessMapper
      */
     public List<StatSiteAccess> selectStatSiteAccessList(StatSiteAccess statSiteAccess);
 
+    /**
+     * 按年汇总网站访问量
+     *
+     * @param query 时间区间（yyyy-MM-dd）
+     * @return 按年汇总列表
+     */
+    public List<StatSiteVisit> selectSiteVisitByYear(StatSiteVisitQuery query);
     /**
      * 通过访问ID查询网站访问日志
      * 

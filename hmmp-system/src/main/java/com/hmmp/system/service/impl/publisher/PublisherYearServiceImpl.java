@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.hmmp.common.utils.SecurityUtils;
+import com.hmmp.common.utils.StringUtils;
 import com.hmmp.system.domain.publisher.PublisherYear;
 import com.hmmp.system.mapper.publisher.PublisherYearMapper;
 import com.hmmp.system.service.publisher.IPublisherYearService;
@@ -25,12 +26,29 @@ public class PublisherYearServiceImpl implements IPublisherYearService {
     }
 
     @Override
-    public boolean checkYearUnique(Integer year) {
-        return yearMapper.checkYearUnique(year) == null;
+    public boolean checkYearUnique(PublisherYear year) {
+        Long yearId = year.getYearId() == null ? -1L : year.getYearId();
+        PublisherYear info = yearMapper.checkYearUnique(year);
+        if (info != null && info.getYearId().longValue() != yearId.longValue()) {
+            return false;
+        }
+        return true;
     }
 
     @Override
     public int insertYear(PublisherYear year) {
+        if (StringUtils.isEmpty(year.getJournalCode())) {
+            year.setJournalCode("");
+        }
+        if (StringUtils.isEmpty(year.getIsFree())) {
+            year.setIsFree("0");
+        }
+        if (StringUtils.isEmpty(year.getStatus())) {
+            year.setStatus("0");
+        }
+        if (StringUtils.isEmpty(year.getNameCn()) && year.getYear() != null) {
+            year.setNameCn(year.getYear() + "年");
+        }
         year.setCreateBy(SecurityUtils.getUsername());
         return yearMapper.insertYear(year);
     }

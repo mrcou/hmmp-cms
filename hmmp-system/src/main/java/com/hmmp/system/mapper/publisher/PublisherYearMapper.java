@@ -6,7 +6,7 @@ import com.hmmp.system.domain.publisher.PublisherYear;
 public interface PublisherYearMapper {
     public List<PublisherYear> selectYearList(PublisherYear year);
     public PublisherYear selectYearById(Long yearId);
-    public PublisherYear checkYearUnique(Integer year);
+    public PublisherYear checkYearUnique(PublisherYear year);
     public int insertYear(PublisherYear year);
     public int updateYear(PublisherYear year);
     public int deleteYearById(Long yearId);

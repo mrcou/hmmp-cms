@@ -100,6 +100,13 @@ const formData = reactive<EditorApi.Audit>({
 onMounted(() => {
   activeTab.value = resolveTabFromRoute();
   if (Object.keys(route.query).length > 0) {
+    const qReviewerId = route.query.reviewerId;
+    if (qReviewerId != null && qReviewerId !== '') {
+      const id = Number(qReviewerId);
+      if (!Number.isNaN(id)) {
+        searchForm.reviewerId = id;
+      }
+    }
     router.replace({ path: route.path });
   }
   loadTable();

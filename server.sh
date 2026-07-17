@@ -14,7 +14,7 @@ GC_LOG_PATH="$LOG_DIR/gc.log"
 JVM_OPTS="-Dname=$APP_NAME -Duser.timezone=Asia/Shanghai -Xms512m -Xmx1024m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Xlog:gc*:file=$GC_LOG_PATH:time,uptime,level,tags:filecount=5,filesize=20M -XX:NewRatio=1 -XX:SurvivorRatio=30 -XX:+UseParallelGC"
 
 usage() {
-    echo "Usage: $0 {start|dev|stop|restart|status}"
+    echo "Usage: $0 {start|dev|stop|restart|status|logs}"
 }
 
 is_java17() {
@@ -134,26 +134,21 @@ cleanup_history_processes() {
     fi
 }
 
-start() {
-    require_java17
-    cleanup_history_processes
-
-    mkdir -p "$LOG_DIR"
-    cd "$APP_HOME" || exit 1
-    nohup "$JAVA_BIN" $JVM_OPTS -jar "$APP_NAME" $APP_ARGS >> "$LOG_PATH" 2>&1 &
-    echo "Start $APP_NAME success. port: $APP_PORT java: $JAVA_BIN"
-}
-
 dev() {
     require_java17
     cleanup_history_processes
 
     mkdir -p "$LOG_DIR"
     cd "$APP_HOME" || exit 1
+    # Root pom also declares spring-boot-maven-plugin. Using -am with spring-boot:run
+    # pulls the parent into the reactor and fails with "Unable to find a suitable main class".
+    # Build+install deps first (-am install), then run only on hmmp-admin.
+    # Must use install (not package): spring-boot:run resolves sibling modules from ~/.m2.
     nohup env JAVA_HOME="$(dirname "$(dirname "$JAVA_BIN")")" PATH="$(dirname "$JAVA_BIN"):$PATH" \
-        "$MAVEN_CMD" -pl "$APP_MODULE" -am spring-boot:run \
-        -Dspring-boot.run.jvmArguments="$JVM_OPTS" \
-        -Dspring-boot.run.arguments="$APP_ARGS" \
+        sh -c "\"$MAVEN_CMD\" -pl \"$APP_MODULE\" -am -DskipTests install && \
+        \"$MAVEN_CMD\" -pl \"$APP_MODULE\" spring-boot:run \
+        -Dspring-boot.run.jvmArguments=\"$JVM_OPTS\" \
+        -Dspring-boot.run.arguments=\"$APP_ARGS\"" \
         >> "$DEV_LOG_PATH" 2>&1 &
     echo "Start $APP_MODULE dev success. port: $APP_PORT java: $JAVA_BIN log: $DEV_LOG_PATH"
 }
@@ -176,7 +171,7 @@ stop() {
 }
 
 restart() {
-    start
+    dev
 }
 
 status() {
@@ -188,11 +183,21 @@ status() {
     fi
 }
 
+logs() {
+    if [ ! -f "$DEV_LOG_PATH" ]; then
+        echo "$DEV_LOG_PATH not found."
+        exit 1
+    fi
+    echo "Tailing $DEV_LOG_PATH (Ctrl+C to stop)..."
+    tail -n 80 -f "$DEV_LOG_PATH"
+}
+
 case "$1" in
-    start) start ;;
+    start) dev ;;
     dev) dev ;;
     stop) stop ;;
     restart) restart ;;
     status) status ;;
+    logs) logs ;;
     *) usage; exit 1 ;;
 esac

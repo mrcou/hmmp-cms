@@ -171,7 +171,6 @@ public class StatSiteAccess extends BaseEntity
             .append("os", getOs())
             .append("accessTime", getAccessTime())
             .append("stayTime", getStayTime())
-            .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .toString();
     }

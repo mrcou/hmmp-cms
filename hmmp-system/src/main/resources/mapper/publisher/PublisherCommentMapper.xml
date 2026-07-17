@@ -18,28 +18,53 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="likeCount"     column="like_count"       />
         <result property="status"        column="status"           />
         <result property="createTime"    column="create_time"      />
+        <result property="fileNo"        column="file_no"          />
+        <result property="articleTitle"  column="article_title"    />
+        <result property="yearNo"        column="year_no"          />
+        <result property="period"        column="period"           />
+        <result property="journalCode"   column="journal_code"     />
+        <result property="meetingId"     column="meeting_id"       />
     </resultMap>
 
     <sql id="selectPublisherCommentVo">
-        select comment_id, article_id, user_id, user_name, content, audit_status, audit_time, audit_by,
-               is_top, reply_to, like_count, status, create_time
-        from publisher_comment
+        select c.comment_id, c.article_id, c.user_id, c.user_name, c.content, c.audit_status, c.audit_time, c.audit_by,
+               c.is_top, c.reply_to, c.like_count, c.status, c.create_time,
+               a.file_no, a.title as article_title, a.year_no, a.period, a.journal_code,
+               COALESCE(i.meeting_id, y.meeting_id) as meeting_id
+        from publisher_comment c
+        left join publisher_article a on c.article_id = a.article_id
+        left join publisher_issue i on a.issue_id = i.issue_id
+        left join publisher_year y on i.year_id = y.year_id
     </sql>
 
     <select id="selectCommentList" parameterType="com.hmmp.system.domain.publisher.PublisherComment" resultMap="PublisherCommentResult">
         <include refid="selectPublisherCommentVo"/>
         <where>
-            <if test="articleId != null">AND article_id = #{articleId}</if>
-            <if test="userId != null">AND user_id = #{userId}</if>
-            <if test="auditStatus != null and auditStatus != ''">AND audit_status = #{auditStatus}</if>
-            <if test="status != null and status != ''">AND status = #{status}</if>
+            <if test="articleId != null">AND c.article_id = #{articleId}</if>
+            <if test="userId != null">AND c.user_id = #{userId}</if>
+            <if test="userName != null and userName != ''">AND c.user_name like concat('%', #{userName}, '%')</if>
+            <if test="auditStatus != null and auditStatus != ''">AND c.audit_status = #{auditStatus}</if>
+            <if test="status != null and status != ''">AND c.status = #{status}</if>
+            <if test="content != null and content != ''">AND c.content like concat('%', #{content}, '%')</if>
+            <if test="fileNo != null and fileNo != ''">AND a.file_no like concat('%', #{fileNo}, '%')</if>
+            <if test="articleTitle != null and articleTitle != ''">AND a.title like concat('%', #{articleTitle}, '%')</if>
+            <if test="yearNo != null">AND a.year_no = #{yearNo}</if>
+            <if test="period != null">AND a.period = #{period}</if>
+            <if test="journalCode != null and journalCode != '' and journalCode != 'default'">AND a.journal_code = #{journalCode}</if>
+            <if test="meetingId != null">AND COALESCE(i.meeting_id, y.meeting_id) = #{meetingId}</if>
+            <if test="params != null and params.beginTime != null and params.beginTime != ''">
+                AND date_format(c.create_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params != null and params.endTime != null and params.endTime != ''">
+                AND date_format(c.create_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
         </where>
-        order by create_time desc
+        order by c.create_time desc
     </select>
 
     <select id="selectCommentById" parameterType="Long" resultMap="PublisherCommentResult">
         <include refid="selectPublisherCommentVo"/>
-        where comment_id = #{commentId}
+        where c.comment_id = #{commentId}
     </select>
 
     <insert id="insertComment" parameterType="com.hmmp.system.domain.publisher.PublisherComment" useGeneratedKeys="true" keyProperty="commentId">
@@ -64,8 +89,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <update id="auditComment" parameterType="com.hmmp.system.domain.publisher.PublisherComment">
-        update publisher_comment set audit_status = #{auditStatus}, audit_time = sysdate(), audit_by = #{auditBy}
-        where comment_id = #{commentId}
+        update publisher_comment
+        set audit_status = #{auditStatus}, audit_time = sysdate(), audit_by = #{auditBy}
+        <where>
+            <if test="commentId != null">AND comment_id = #{commentId}</if>
+            <if test="commentIds != null and commentIds.length > 0">
+                AND comment_id in
+                <foreach collection="commentIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
     </update>
 
     <delete id="deleteCommentById" parameterType="Long">

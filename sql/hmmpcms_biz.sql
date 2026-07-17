@@ -304,7 +304,14 @@ CREATE TABLE `editor_reviewer_apply` (
 DROP TABLE IF EXISTS `publisher_year`;
 CREATE TABLE `publisher_year` (
   `year_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '年份ID',
+  `journal_code` varchar(50) DEFAULT '' COMMENT '杂志编号',
   `year` int(4) NOT NULL COMMENT '年份',
+  `volume` int(4) DEFAULT NULL COMMENT '卷号',
+  `name_cn` varchar(100) DEFAULT '' COMMENT '中文名',
+  `name_en` varchar(100) DEFAULT '' COMMENT '英文名',
+  `catalog_file` varchar(500) DEFAULT '' COMMENT '目录文件',
+  `is_free` char(1) DEFAULT '0' COMMENT '是否免费(0否 1是)',
+  `meeting_id` bigint(20) DEFAULT NULL COMMENT '会议ID',
   `status` char(1) DEFAULT '0' COMMENT '状态',
   `remark` varchar(500) DEFAULT NULL,
   `create_by` varchar(64) DEFAULT '',
@@ -312,22 +319,51 @@ CREATE TABLE `publisher_year` (
   `update_by` varchar(64) DEFAULT '',
   `update_time` datetime DEFAULT NULL,
   PRIMARY KEY (`year_id`),
-  UNIQUE KEY `uk_year` (`year`)
+  UNIQUE KEY `uk_journal_year` (`journal_code`, `year`),
+  KEY `idx_meeting_id` (`meeting_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='期刊年份表';
 
 DROP TABLE IF EXISTS `publisher_issue`;
 CREATE TABLE `publisher_issue` (
   `issue_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '刊期ID',
   `year_id` bigint(20) NOT NULL COMMENT '年份ID',
+  `journal_code` varchar(50) DEFAULT '' COMMENT '杂志编号',
   `year` int(4) NOT NULL COMMENT '年份',
-  `period` int(3) NOT NULL COMMENT '期数',
+  `volume` int(4) DEFAULT NULL COMMENT '卷',
+  `period` varchar(50) NOT NULL COMMENT '期数/刊期（可为数字或字符）',
   `issue_name` varchar(100) DEFAULT '' COMMENT '刊期名称',
+  `name_cn` varchar(100) DEFAULT '' COMMENT '中文名',
+  `name_en` varchar(100) DEFAULT '' COMMENT '英文名',
+  `sequence` int(4) DEFAULT NULL COMMENT '顺序',
+  `special_name` varchar(100) DEFAULT '' COMMENT '专辑中文名',
+  `special_en_name` varchar(100) DEFAULT '' COMMENT '专辑英文名',
+  `important` text COMMENT '重点(中文)',
+  `en_important` text COMMENT '重点(英文)',
+  `image_url` varchar(500) DEFAULT '' COMMENT '封面(小图)',
+  `larger_cover_url` varchar(500) DEFAULT '' COMMENT '封面(大图)',
+  `contents_file` varchar(500) DEFAULT '' COMMENT '目录文件',
+  `cn_image_explain` text COMMENT '封面说明(中文)',
+  `en_image_explain` text COMMENT '封面说明(英文)',
+  `request_money` char(1) DEFAULT '0' COMMENT '是否收费(0否 1是)',
+  `is_free` char(1) DEFAULT '0' COMMENT '是否免费(0否 1是)',
+  `is_latest` char(1) DEFAULT '0' COMMENT '是否最新一期文章(0否 1是)',
+  `meeting_id` bigint(20) DEFAULT NULL COMMENT '会议ID',
+  `subscribe_status` char(1) DEFAULT '0' COMMENT '订阅发送状态(0未发送 1已发送)',
+  `doi_status` char(1) DEFAULT '0' COMMENT 'DOI注册状态(0未注册 1已注册)',
+  `cstr_status` char(1) DEFAULT '0' COMMENT 'CSTR注册状态(0未注册 1已注册)',
+  `baidu_status` char(1) DEFAULT '0' COMMENT '百度发布状态(0未发送 1已发送)',
   `publish_date` date DEFAULT NULL COMMENT '出版日期',
   `status` char(1) DEFAULT '0' COMMENT '状态(0待发布 1已发布 2已归档)',
   `publish_time` datetime DEFAULT NULL COMMENT '发布时间',
   `article_count` int(4) DEFAULT '0' COMMENT '文章数量',
   `page_count` int(4) DEFAULT '0' COMMENT '总页数',
   `cover_image` varchar(200) DEFAULT '' COMMENT '封面图片',
+  `print_money` decimal(10,2) DEFAULT NULL COMMENT '印刷费',
+  `publish_money` decimal(10,2) DEFAULT NULL COMMENT '发行费',
+  `post_money` decimal(10,2) DEFAULT NULL COMMENT '邮费',
+  `start_page` varchar(50) DEFAULT '' COMMENT '起始页码',
+  `end_page` varchar(50) DEFAULT '' COMMENT '截止页码',
+  `columns_info` text COMMENT '栏目信息(JSON)',
   `create_by` varchar(64) DEFAULT '',
   `create_time` datetime DEFAULT NULL,
   `update_by` varchar(64) DEFAULT '',
@@ -335,17 +371,28 @@ CREATE TABLE `publisher_issue` (
   `remark` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`issue_id`),
   KEY `idx_year_id` (`year_id`),
+  KEY `idx_journal_code` (`journal_code`),
+  KEY `idx_meeting_id` (`meeting_id`),
+  KEY `idx_journal_year_period` (`journal_code`, `year`, `period`),
   KEY `idx_year_period` (`year`, `period`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='期刊刊期表';
 
 DROP TABLE IF EXISTS `publisher_column`;
 CREATE TABLE `publisher_column` (
-  `column_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '栏目ID',
-  `column_name` varchar(100) NOT NULL COMMENT '栏目名称',
+  `column_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '栏目主键',
+  `journal_code` varchar(50) DEFAULT '' COMMENT '杂志编号',
+  `column_code` varchar(50) DEFAULT '' COMMENT '栏目ID/编码',
+  `column_name` varchar(100) NOT NULL COMMENT '中文栏目',
+  `name_en` varchar(100) DEFAULT '' COMMENT '英文栏目',
   `parent_id` bigint(20) DEFAULT '0' COMMENT '父栏目ID',
-  `order_num` int(4) DEFAULT '0' COMMENT '排序号',
-  `column_code` varchar(50) DEFAULT '' COMMENT '栏目编码',
+  `order_num` int(4) DEFAULT '0' COMMENT '顺序',
+  `need_recommender` char(1) DEFAULT '0' COMMENT '是否需要推荐人(0否 1是)',
+  `usage_scope` varchar(200) DEFAULT '' COMMENT '使用范围文本',
+  `is_post_column` char(1) DEFAULT '1' COMMENT '使用范围(1投稿、内部查询、网刊发布 0网刊发布 2内部查询、网刊发布)',
+  `file_no_prefix` varchar(50) DEFAULT '' COMMENT '稿件编号前缀',
+  `en_abstract_money` decimal(10,2) DEFAULT NULL COMMENT '英文摘要加工费',
+  `edit_name` varchar(255) DEFAULT '' COMMENT '编辑账号',
   `column_type` char(1) DEFAULT '0' COMMENT '栏目类型',
   `status` char(1) DEFAULT '0' COMMENT '状态',
   `description` varchar(500) DEFAULT '' COMMENT '描述',
@@ -354,6 +401,8 @@ CREATE TABLE `publisher_column` (
   `update_by` varchar(64) DEFAULT '',
   `update_time` datetime DEFAULT NULL,
   PRIMARY KEY (`column_id`),
+  KEY `idx_journal_column_code` (`journal_code`, `column_code`),
+  KEY `idx_journal_code` (`journal_code`),
   KEY `idx_parent_id` (`parent_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='期刊栏目表';
 
@@ -363,20 +412,46 @@ CREATE TABLE `publisher_article` (
   `manuscript_id` bigint(20) DEFAULT NULL COMMENT '关联稿件ID',
   `issue_id` bigint(20) DEFAULT NULL COMMENT '关联刊期ID',
   `column_id` bigint(20) DEFAULT NULL COMMENT '关联栏目ID',
+  `journal_code` varchar(50) DEFAULT '' COMMENT '杂志编号',
+  `file_no` varchar(50) DEFAULT '' COMMENT '稿件编号',
   `title` varchar(500) NOT NULL COMMENT '标题',
+  `title_en` varchar(500) DEFAULT '' COMMENT '英文标题',
   `subtitle` varchar(500) DEFAULT '' COMMENT '副标题',
   `author_names` varchar(500) DEFAULT '' COMMENT '作者姓名',
+  `author_names_en` varchar(500) DEFAULT '' COMMENT '作者英文名',
+  `author_org_zh` varchar(1000) DEFAULT '' COMMENT '作者单位中文名',
+  `author_org_en` varchar(1000) DEFAULT '' COMMENT '作者单位英文名',
+  `doi` varchar(200) DEFAULT '' COMMENT 'DOI',
   `abstract` text COMMENT '摘要',
+  `abstract_en` text COMMENT '英文摘要',
   `keywords` varchar(500) DEFAULT '' COMMENT '关键词',
+  `keywords_en` varchar(500) DEFAULT '' COMMENT '英文关键词',
+  `fund_zh` varchar(500) DEFAULT '' COMMENT '基金中文名',
+  `fund_en` varchar(500) DEFAULT '' COMMENT '基金英文名',
   `content` longtext COMMENT '正文内容',
+  `reference_text` longtext COMMENT '参考文献',
+  `citation_text` longtext COMMENT '引用文本',
   `page_start` int(4) DEFAULT '0' COMMENT '起始页码',
   `page_end` int(4) DEFAULT '0' COMMENT '结束页码',
   `word_count` int(11) DEFAULT '0' COMMENT '字数',
+  `submit_time` datetime DEFAULT NULL COMMENT '投稿时间',
+  `last_modify_time` datetime DEFAULT NULL COMMENT '最后修改时间',
+  `volume` int(4) DEFAULT NULL COMMENT '卷',
+  `period` int(4) DEFAULT NULL COMMENT '期',
+  `year_no` int(4) DEFAULT NULL COMMENT '年',
   `status` char(1) DEFAULT '0' COMMENT '状态',
   `publish_time` datetime DEFAULT NULL COMMENT '发布时间',
   `view_count` int(11) DEFAULT '0' COMMENT '浏览次数',
+  `download_count` int(11) DEFAULT '0' COMMENT '下载次数',
+  `html_view_count` int(11) DEFAULT '0' COMMENT 'HTML浏览次数',
+  `cited_count` int(11) DEFAULT '0' COMMENT '被引次数',
+  `self_cited_count` int(11) DEFAULT '0' COMMENT '自引次数',
+  `other_cited_count` int(11) DEFAULT '0' COMMENT '他引次数',
+  `cnki_cited_count` int(11) DEFAULT '0' COMMENT '知网引用次数',
   `cnki_title` varchar(500) DEFAULT '' COMMENT '知网标题',
   `cnki_match_status` char(1) DEFAULT '' COMMENT '知网匹配状态',
+  `article_url` varchar(500) DEFAULT '' COMMENT '网址',
+  `pdf_path` varchar(500) DEFAULT '' COMMENT '全文PDF路径',
   `create_by` varchar(64) DEFAULT '',
   `create_time` datetime DEFAULT NULL,
   `update_by` varchar(64) DEFAULT '',
@@ -385,6 +460,7 @@ CREATE TABLE `publisher_article` (
   PRIMARY KEY (`article_id`),
   KEY `idx_manuscript_id` (`manuscript_id`),
   KEY `idx_issue_id` (`issue_id`),
+  KEY `idx_file_no` (`file_no`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='文章信息表';
 
@@ -411,8 +487,13 @@ CREATE TABLE `publisher_comment` (
 DROP TABLE IF EXISTS `publisher_virtual_album`;
 CREATE TABLE `publisher_virtual_album` (
   `album_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '专辑ID',
-  `album_name` varchar(200) NOT NULL COMMENT '专辑名称',
-  `album_code` varchar(50) DEFAULT '' COMMENT '专辑编码',
+  `journal_code` varchar(50) DEFAULT '' COMMENT '杂志编号',
+  `name_cn` varchar(200) NOT NULL COMMENT '中文名',
+  `name_en` varchar(200) DEFAULT '' COMMENT '英文名',
+  `finish_date` date DEFAULT NULL COMMENT '完成日期',
+  `order_num` int(4) DEFAULT '0' COMMENT '顺序',
+  `album_type` varchar(50) DEFAULT '' COMMENT '类型',
+  `meeting_id` bigint(20) DEFAULT NULL COMMENT '会议ID',
   `cover_image` varchar(200) DEFAULT '' COMMENT '封面图片',
   `description` varchar(2000) DEFAULT '' COMMENT '专辑描述',
   `status` char(1) DEFAULT '0' COMMENT '状态',
@@ -421,7 +502,9 @@ CREATE TABLE `publisher_virtual_album` (
   `update_by` varchar(64) DEFAULT '',
   `update_time` datetime DEFAULT NULL,
   `remark` varchar(500) DEFAULT NULL,
-  PRIMARY KEY (`album_id`)
+  PRIMARY KEY (`album_id`),
+  KEY `idx_journal_code` (`journal_code`),
+  KEY `idx_meeting_id` (`meeting_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='虚拟专辑表';
 
 DROP TABLE IF EXISTS `publisher_album_article`;
@@ -622,6 +705,25 @@ CREATE TABLE `publisher_post` (
   PRIMARY KEY (`post_id`),
   KEY `idx_order_id` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='寄书记录表';
+
+DROP TABLE IF EXISTS `publisher_sample_post`;
+CREATE TABLE `publisher_sample_post` (
+  `sample_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '样刊登记ID',
+  `article_id` bigint(20) NOT NULL COMMENT '关联文章ID',
+  `payee_name` varchar(50) DEFAULT '' COMMENT '收款人姓名',
+  `payee_address` varchar(500) DEFAULT '' COMMENT '收款人地址',
+  `payee_org` varchar(200) DEFAULT '' COMMENT '收款人单位',
+  `payee_zip` varchar(10) DEFAULT '' COMMENT '邮编',
+  `payee_phone` varchar(20) DEFAULT '' COMMENT '联系电话',
+  `sample_qty` int(11) DEFAULT '1' COMMENT '样刊册数',
+  `remark` varchar(500) DEFAULT '' COMMENT '备注',
+  `create_by` varchar(64) DEFAULT '',
+  `create_time` datetime DEFAULT NULL,
+  `update_by` varchar(64) DEFAULT '',
+  `update_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`sample_id`),
+  UNIQUE KEY `uk_article_id` (`article_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='邮寄样刊登记表';
 
 DROP TABLE IF EXISTS `publisher_push_subscriber`;
 CREATE TABLE `publisher_push_subscriber` (

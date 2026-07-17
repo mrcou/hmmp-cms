@@ -119,6 +119,9 @@ INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`
 (2104, '新增刊期', 2103, 1, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:issue:add', '#', 'admin', NOW(), '', NULL, ''),
 (2105, '栏目管理', 2101, 3, 'column', 'system/publisher/column/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:column:list', 'lucide:layout-list', 'admin', NOW(), '', NULL, ''),
 (2106, '新增栏目', 2105, 1, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:column:add', '#', 'admin', NOW(), '', NULL, ''),
+(2134, '修改栏目', 2105, 2, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:column:edit', '#', 'admin', NOW(), '', NULL, ''),
+(2135, '删除栏目', 2105, 3, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:column:remove', '#', 'admin', NOW(), '', NULL, ''),
+(2136, '查询栏目', 2105, 4, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:column:query', '#', 'admin', NOW(), '', NULL, ''),
 (2107, '文章管理', 2101, 5, 'article', 'system/publisher/article/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:article:list', 'lucide:file-text', 'admin', NOW(), '', NULL, ''),
 (2108, '批量发布文章', 2101, 4, 'batch-publish', 'system/publisher/article/batch', NULL, '', 1, 0, 'C', '0', '0', 'publisher:article:batchPublish', 'lucide:upload', 'admin', NOW(), '', NULL, ''),
 (2109, '文章评论管理', 2101, 6, 'comment', 'system/publisher/comment/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:comment:list', 'lucide:message-square', 'admin', NOW(), '', NULL, ''),
@@ -164,16 +167,16 @@ INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`
 -- 综合统计 (menu_id=2201, parent_id=2200)
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES
 (2201, '综合统计', 2200, 1, 'integrative', NULL, NULL, '', 1, 0, 'M', '0', '0', '', 'lucide:pie-chart', 'admin', NOW(), '', NULL, '综合统计二级目录'),
-(2202, '期刊统计', 2201, 1, 'journal', 'system/statistics/integrative/panel', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:total', 'lucide:book-open', 'admin', NOW(), '', NULL, ''),
-(2203, '审理周期统计', 2201, 2, 'audit-cycle', 'system/statistics/integrative/panel', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:auditCycle', 'lucide:timer', 'admin', NOW(), '', NULL, ''),
-(2204, '出版周期统计', 2201, 3, 'publish-cycle', 'system/statistics/integrative/panel', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:publishCycle', 'lucide:calendar-clock', 'admin', NOW(), '', NULL, ''),
-(2205, '责编处理周期统计', 2201, 4, 'edit-process-cycle', 'system/statistics/integrative/panel', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:editProcessCycle', 'lucide:hourglass', 'admin', NOW(), '', NULL, ''),
-(2206, '加工周期', 2201, 5, 'edit-article-cycle', 'system/statistics/integrative/panel', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:editArticleCycle', 'lucide:cog', 'admin', NOW(), '', NULL, ''),
-(2207, '责编工作量统计', 2201, 6, 'edit-work', 'system/statistics/integrative/panel', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:editWork', 'lucide:briefcase', 'admin', NOW(), '', NULL, ''),
-(2208, '责编加工工作量', 2201, 7, 'edit-production', 'system/statistics/integrative/panel', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:editProduction', 'lucide:hammer', 'admin', NOW(), '', NULL, ''),
-(2209, '审稿统计', 2201, 8, 'reviewer-audit', 'system/statistics/integrative/panel', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:reviewerAudit', 'lucide:clipboard-check', 'admin', NOW(), '', NULL, ''),
-(2210, '被引文章查询', 2201, 9, 'referenced-article', 'system/statistics/integrative/panel', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:referencedArticle', 'lucide:quote', 'admin', NOW(), '', NULL, ''),
-(2211, '审稿周期统计', 2201, 10, 'review-cycle', 'system/statistics/integrative/panel', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:reviewCycle', 'lucide:clock-3', 'admin', NOW(), '', NULL, ''),
+(2202, '期刊统计', 2201, 1, 'journal', 'system/statistics/integrative/journal', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:total', 'lucide:book-open', 'admin', NOW(), '', NULL, ''),
+(2203, '审理周期统计', 2201, 2, 'audit-cycle', 'system/statistics/integrative/audit-cycle', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:auditCycle', 'lucide:timer', 'admin', NOW(), '', NULL, ''),
+(2204, '出版周期统计', 2201, 3, 'publish-cycle', 'system/statistics/integrative/publish-cycle', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:publishCycle', 'lucide:calendar-clock', 'admin', NOW(), '', NULL, ''),
+(2205, '责编处理周期统计', 2201, 4, 'edit-process-cycle', 'system/statistics/integrative/edit-process-cycle', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:editProcessCycle', 'lucide:hourglass', 'admin', NOW(), '', NULL, ''),
+(2206, '加工周期', 2201, 5, 'edit-article-cycle', 'system/statistics/integrative/edit-article-cycle', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:editArticleCycle', 'lucide:cog', 'admin', NOW(), '', NULL, ''),
+(2207, '责编工作量统计', 2201, 6, 'edit-work', 'system/statistics/integrative/edit-work', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:editWork', 'lucide:briefcase', 'admin', NOW(), '', NULL, ''),
+(2208, '责编加工工作量', 2201, 7, 'edit-production', 'system/statistics/integrative/edit-production', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:editProduction', 'lucide:hammer', 'admin', NOW(), '', NULL, ''),
+(2209, '审稿统计', 2201, 8, 'reviewer-audit', 'system/statistics/integrative/reviewer-audit', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:reviewerAudit', 'lucide:clipboard-check', 'admin', NOW(), '', NULL, ''),
+(2210, '被引文章查询', 2201, 9, 'referenced-article', 'system/statistics/integrative/referenced-article', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:referencedArticle', 'lucide:quote', 'admin', NOW(), '', NULL, ''),
+(2211, '审稿周期统计', 2201, 10, 'review-cycle', 'system/statistics/integrative/review-cycle', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:reviewCycle', 'lucide:clock-3', 'admin', NOW(), '', NULL, ''),
 (2212, '用户统计', 2201, 11, 'user', 'system/statistics/integrative/panel', NULL, '', 1, 0, 'C', '0', '0', 'statistics:integrative:userStat', 'lucide:users', 'admin', NOW(), '', NULL, '');
 
 -- 网站统计 (menu_id=2213, parent_id=2200)

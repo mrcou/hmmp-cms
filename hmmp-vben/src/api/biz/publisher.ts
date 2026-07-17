@@ -3,30 +3,117 @@ import { requestClient } from '#/api/request';
 export namespace PublisherApi {
   export interface Year {
     yearId?: number;
+    /** 杂志编号 */
+    journalCode?: string;
     year: number;
+    /** 卷号 */
+    volume?: number;
+    /** 中文名 */
+    nameCn?: string;
+    /** 英文名 */
+    nameEn?: string;
+    /** 目录文件 */
+    catalogFile?: string;
+    /** 是否免费(0否 1是) */
+    isFree?: string;
+    /** 会议ID */
+    meetingId?: number;
     status?: string;
     remark?: string;
   }
 
   export interface Issue {
     issueId?: number;
-    yearId: number;
+    yearId?: number;
+    /** 杂志编号 */
+    journalCode?: string;
     year: number;
-    period: number;
+    volume?: number;
+    period: string;
     issueName?: string;
+    /** 中文名 */
+    nameCn?: string;
+    /** 英文名 */
+    nameEn?: string;
+    /** 顺序 */
+    sequence?: number;
+    /** 专辑中文名 */
+    specialName?: string;
+    /** 专辑英文名 */
+    specialEnName?: string;
+    /** 重点(中文) */
+    important?: string;
+    /** 重点(英文) */
+    enImportant?: string;
+    /** 封面(小图) */
+    imageUrl?: string;
+    /** 封面(大图) */
+    largerCoverUrl?: string;
+    /** 目录文件 */
+    contentsFile?: string;
+    /** 封面说明(中文) */
+    cnImageExplain?: string;
+    /** 封面说明(英文) */
+    enImageExplain?: string;
+    /** 免费下载？(旧字段 request_money，0否 1是) */
+    requestMoney?: string;
+    /** 是否免费(0否 1是) */
+    isFree?: string;
+    /** 是否最新一期文章(0否 1是) */
+    isLatest?: string;
+    /** 会议ID */
+    meetingId?: number;
+    /** 订阅发送状态(0未发送 1已发送) */
+    subscribeStatus?: string;
+    /** DOI注册状态(0未注册 1已注册) */
+    doiStatus?: string;
+    /** CSTR注册状态(0未注册 1已注册) */
+    cstrStatus?: string;
+    /** 百度发布状态(0未发送 1已发送) */
+    baiduStatus?: string;
     publishDate?: string;
     status?: string;
     publishTime?: string;
     articleCount?: number;
     pageCount?: number;
     coverImage?: string;
+    printMoney?: number;
+    publishMoney?: number;
+    postMoney?: number;
+    startPage?: string;
+    endPage?: string;
+    columnsInfo?: string;
+    remark?: string;
   }
 
   export interface Column {
     columnId?: number;
+    /** 杂志编号 */
+    journalCode?: string;
+    /** 栏目名称 */
     columnName: string;
+    /** 英文名 */
+    nameEn?: string;
+    /** 英文栏目（旧字段 column_en_name，对应 name_en） */
+    columnEnName?: string;
     parentId?: number;
+    /** 顺序 */
     orderNum?: number;
+    /** 顺序（旧字段 sequence，对应 order_num） */
+    sequence?: number;
+    /** 是否需要推荐人(0否 1是) */
+    needRecommender?: string;
+    /** 使用范围，顿号分隔：投稿、内部查阅、网刊发布 */
+    usageScope?: string;
+    /** 使用范围(1投稿、内部查询、网刊发布 0网刊发布 2内部查询、网刊发布) */
+    isPostColumn?: string;
+    /** 稿件编号前缀 */
+    fileNoPrefix?: string;
+    /** 英文摘要加工费 */
+    enAbstractMoney?: number;
+    /** 编辑账号 */
+    editName?: string;
+    /** 栏目ID/编码（业务键，如 lcst001） */
     columnCode?: string;
     columnType?: string;
     status?: string;
@@ -38,20 +125,50 @@ export namespace PublisherApi {
     manuscriptId?: number;
     issueId?: number;
     columnId?: number;
+    journalCode?: string;
+    fileNo?: string;
     title: string;
+    titleEn?: string;
     subtitle?: string;
     authorNames?: string;
+    authorNamesEn?: string;
+    authorOrgZh?: string;
+    authorOrgEn?: string;
+    doi?: string;
+    /** 摘要（后端 PublisherArticle.abstractText） */
+    abstractText?: string;
+    /** @deprecated 兼容旧页面字段，新代码请使用 abstractText */
     abstract?: string;
+    abstractEn?: string;
     keywords?: string;
+    keywordsEn?: string;
+    fundZh?: string;
+    fundEn?: string;
     content?: string;
+    referenceText?: string;
+    citationText?: string;
     pageStart?: number;
     pageEnd?: number;
     wordCount?: number;
+    submitTime?: string;
+    lastModifyTime?: string;
+    volume?: number;
+    period?: number;
+    yearNo?: number;
     status?: string;
     publishTime?: string;
     viewCount?: number;
+    downloadCount?: number;
+    htmlViewCount?: number;
+    citedCount?: number;
+    cnkiCitedCount?: number;
     cnkiTitle?: string;
     cnkiMatchStatus?: string;
+    articleUrl?: string;
+    pdfPath?: string;
+    createTime?: string;
+    updateTime?: string;
+    remark?: string;
   }
 
   export interface Reader {
@@ -175,6 +292,137 @@ export namespace PublisherApi {
     quantity?: number;
     remark?: string;
   }
+
+  /** 邮寄样刊登记 */
+  export interface SamplePost {
+    sampleId?: number;
+    articleId?: number;
+    manuscriptId?: number;
+    fileNo?: string;
+    yearNo?: number;
+    period?: number;
+    submitAuthor?: string;
+    firstAuthor?: string;
+    correspondingAuthor?: string;
+    firstAuthorAddress?: string;
+    firstAuthorOrg?: string;
+    firstAuthorZip?: string;
+    firstAuthorPhone?: string;
+    correspondingAddress?: string;
+    correspondingOrg?: string;
+    correspondingZip?: string;
+    correspondingPhone?: string;
+    submitAuthorAddress?: string;
+    submitAuthorOrg?: string;
+    submitAuthorZip?: string;
+    submitAuthorPhone?: string;
+    payeeName?: string;
+    payeeAddress?: string;
+    payeeOrg?: string;
+    payeeZip?: string;
+    payeePhone?: string;
+    sampleQty?: number;
+    journalCode?: string;
+    meetingId?: number;
+    remark?: string;
+  }
+
+  /** 邮寄合订本 */
+  export interface BoundPost {
+    boundId?: number;
+    orderId?: number;
+    orderNo?: string;
+    journalCode?: string;
+    category?: string;
+    unitType?: string;
+    distributeType?: string;
+    sendMethodName?: string;
+    yearId?: number;
+    receiveUser?: string;
+    receiveUnit?: string;
+    receiveAddress?: string;
+    receivePostcode?: string;
+    orderTime?: string;
+    orderBookNum?: number;
+    sendBookTime?: string;
+    sendUser?: string;
+    rmbOrderCost?: number;
+    canPost?: string;
+    meetingId?: number;
+    mailedOnly?: boolean;
+    pendingOnly?: boolean;
+    orderIds?: number[];
+    remark?: string;
+  }
+
+  export interface Comment {
+    commentId?: number;
+    articleId?: number;
+    userId?: number;
+    userName?: string;
+    content?: string;
+    auditStatus?: string;
+    auditTime?: string;
+    auditBy?: string;
+    isTop?: string;
+    replyTo?: number;
+    likeCount?: number;
+    status?: string;
+    createTime?: string;
+    fileNo?: string;
+    articleTitle?: string;
+    yearNo?: number;
+    period?: number;
+    journalCode?: string;
+    meetingId?: number;
+    commentIds?: number[];
+  }
+
+  export interface Album {
+    albumId?: number;
+    /** 杂志名称/编号（旧表单字段 journal_id） */
+    journal_id?: string;
+    /** 杂志编号 */
+    journalCode?: string;
+    /** 专辑中文名（旧表单字段 cn_name） */
+    cn_name?: string;
+    /** 中文名 */
+    nameCn: string;
+    /** 专辑英文名（旧表单字段 en_name） */
+    en_name?: string;
+    /** 英文名 */
+    nameEn?: string;
+    /** 完成日期 */
+    finishDate?: string;
+    /** 顺序（旧表单字段 sequence） */
+    sequence?: number;
+    /** 顺序 */
+    orderNum?: number;
+    /** 类型（旧表单字段 type） */
+    type?: string;
+    /** 类型 */
+    albumType?: string;
+    /** 会议ID */
+    meetingId?: number;
+    /** 中文封面（旧表单字段 image_url） */
+    image_url?: string;
+    /** 英文封面（旧表单字段 en_image_url） */
+    en_image_url?: string;
+    coverImage?: string;
+    /** 中文描述（旧表单字段 CKEDITOR_cn_description） */
+    CKEDITOR_cn_description?: string;
+    /** 英文描述（旧表单字段 CKEDITOR_en_description） */
+    CKEDITOR_en_description?: string;
+    /** 组稿编辑中文名（旧表单字段 CKEDITOR_acquisition_editor） */
+    CKEDITOR_acquisition_editor?: string;
+    /** 组稿编辑英文名（旧表单字段 CKEDITOR_en_acquisition_editor） */
+    CKEDITOR_en_acquisition_editor?: string;
+    description?: string;
+    status?: string;
+    createBy?: string;
+    createTime?: string;
+    remark?: string;
+  }
 }
 
 /** 年份管理 */
@@ -210,6 +458,19 @@ export async function updateIssue(data: PublisherApi.Issue) {
 export async function deleteIssue(issueIds: number[]) {
   return requestClient.delete(`/publisher/issue/${issueIds.join(',')}`);
 }
+export async function publishIssue(data: PublisherApi.Issue) {
+  return requestClient.put('/publisher/issue/publish', data);
+}
+export async function uploadPublisherFile(file: File) {
+  return requestClient.upload('/common/upload', { file });
+}
+/** 刊期业务动作：subscribe / doi / cstr / baidu */
+export async function executeIssueAction(
+  action: 'subscribe' | 'doi' | 'cstr' | 'baidu',
+  issueId: number,
+) {
+  return requestClient.put(`/publisher/issue/action/${action}/${issueId}`);
+}
 
 /** 栏目管理 */
 export async function getColumnList(params: any) {
@@ -228,6 +489,17 @@ export async function deleteColumn(columnIds: number[]) {
   return requestClient.delete(`/publisher/column/${columnIds.join(',')}`);
 }
 
+/** 文章评论管理 */
+export async function getCommentList(params: any) {
+  return requestClient.get('/publisher/comment/list', { params });
+}
+export async function auditComment(data: PublisherApi.Comment) {
+  return requestClient.put('/publisher/comment/audit', data);
+}
+export async function deleteComment(commentIds: number[]) {
+  return requestClient.delete(`/publisher/comment/${commentIds.join(',')}`);
+}
+
 /** 文章管理 */
 export async function getArticleList(params: any) {
   return requestClient.get('/publisher/article/list', { params });
@@ -243,6 +515,30 @@ export async function updateArticle(data: PublisherApi.Article) {
 }
 export async function deleteArticle(articleIds: number[]) {
   return requestClient.delete(`/publisher/article/${articleIds.join(',')}`);
+}
+
+/** 知网标题核对 */
+export async function cnkiCheckArticle(data: PublisherApi.Article) {
+  return requestClient.post('/publisher/article/cnkiCheck', data);
+}
+
+/** 引用次数同步：将知网引用次数写入被引次数 */
+export async function syncCnkiCited(articleIds: number[]) {
+  return requestClient.put(`/publisher/article/syncCnkiCited/${articleIds.join(',')}`);
+}
+
+/** 批量发布：导入过刊 Excel 或 ZIP 全文 */
+export async function batchImportArticles(file: File, updateSupport = false) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('updateSupport', String(updateSupport));
+  return requestClient.post<{ msg: string }>('/publisher/article/batchImport', formData);
+}
+
+/** 下载过刊导入模板 */
+export async function downloadArticleImportTemplate() {
+  const { downloadExcel } = await import('#/api/core/download');
+  return downloadExcel('/publisher/article/importTemplate', {}, '过刊稿件明细导入模板.xlsx');
 }
 
 /** 读者管理 */
@@ -399,4 +695,48 @@ export async function updatePost(data: PublisherApi.Post) {
 }
 export async function deletePost(postIds: number[]) {
   return requestClient.delete(`/publisher/post/${postIds.join(',')}`);
+}
+
+/** 邮寄样刊登记 */
+export async function getSamplePostList(params: any) {
+  return requestClient.get('/publisher/post/sample/list', { params });
+}
+export async function saveSamplePost(data: PublisherApi.SamplePost) {
+  return requestClient.put('/publisher/post/sample', data);
+}
+export async function exportSamplePost(params: Record<string, any> = {}) {
+  const { downloadExcel } = await import('#/api/core/download');
+  return downloadExcel('/publisher/post/sample/export', params, '邮寄样刊登记.xlsx');
+}
+
+/** 邮寄合订本 */
+export async function getBoundPostList(params: any) {
+  return requestClient.get('/publisher/post/bound/list', { params });
+}
+export async function saveBoundPost(data: PublisherApi.BoundPost) {
+  return requestClient.put('/publisher/post/bound', data);
+}
+export async function clearInvalidBoundPostAddress() {
+  return requestClient.put('/publisher/post/bound/clearInvalidAddress');
+}
+export async function exportBoundPost(params: Record<string, any> = {}) {
+  const { downloadExcel } = await import('#/api/core/download');
+  return downloadExcel('/publisher/post/bound/export', params, '邮寄合订本.xlsx');
+}
+
+/** 虚拟专辑管理 */
+export async function getAlbumList(params: any) {
+  return requestClient.get('/publisher/album/list', { params });
+}
+export async function getAlbum(albumId: number) {
+  return requestClient.get(`/publisher/album/${albumId}`);
+}
+export async function createAlbum(data: PublisherApi.Album) {
+  return requestClient.post('/publisher/album', data);
+}
+export async function updateAlbum(data: PublisherApi.Album) {
+  return requestClient.put('/publisher/album', data);
+}
+export async function deleteAlbum(albumIds: number[]) {
+  return requestClient.delete(`/publisher/album/${albumIds.join(',')}`);
 }

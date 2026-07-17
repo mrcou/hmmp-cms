@@ -9,4 +9,5 @@ public interface EditorReviewerApplyMapper {
     public int insertApply(EditorReviewerApply apply);
     public int updateApply(EditorReviewerApply apply);
     public int deleteApplyById(Long applyId);
+    public int deleteApplyByIds(Long[] applyIds);
 }

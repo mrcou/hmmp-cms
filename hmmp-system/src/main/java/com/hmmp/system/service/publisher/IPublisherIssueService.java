@@ -9,5 +9,7 @@ public interface IPublisherIssueService {
     public int insertIssue(PublisherIssue issue);
     public int updateIssue(PublisherIssue issue);
     public int publishIssue(PublisherIssue issue);
+    /** 刊期业务动作：subscribe / doi / cstr / baidu */
+    public int executeIssueAction(Long issueId, String action);
     public int deleteIssueByIds(Long[] issueIds);
 }

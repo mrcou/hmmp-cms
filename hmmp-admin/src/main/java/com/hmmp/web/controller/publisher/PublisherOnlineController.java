@@ -1,6 +1,7 @@
 package com.hmmp.web.controller.publisher;
 
 import java.util.List;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,10 +12,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import com.hmmp.common.annotation.Log;
 import com.hmmp.common.core.controller.BaseController;
 import com.hmmp.common.core.domain.AjaxResult;
 import com.hmmp.common.core.page.TableDataInfo;
+import com.hmmp.common.enums.BusinessType;
+import com.hmmp.common.utils.poi.ExcelUtil;
 import com.hmmp.system.domain.publisher.PublisherArticle;
+import com.hmmp.system.domain.publisher.PublisherArticleBatchImport;
 import com.hmmp.system.domain.publisher.PublisherColumn;
 import com.hmmp.system.domain.publisher.PublisherComment;
 import com.hmmp.system.domain.publisher.PublisherIssue;
@@ -72,8 +78,8 @@ public class PublisherOnlineController extends BaseController {
     @PreAuthorize("@ss.hasPermi('publisher:year:add')")
     @PostMapping("/year")
     public AjaxResult yearAdd(@RequestBody PublisherYear year) {
-        if (!yearService.checkYearUnique(year.getYear())) {
-            return error("该年份已存在");
+        if (!yearService.checkYearUnique(year)) {
+            return error("该杂志下年份已存在");
         }
         return toAjax(yearService.insertYear(year));
     }
@@ -87,6 +93,9 @@ public class PublisherOnlineController extends BaseController {
     @PreAuthorize("@ss.hasPermi('publisher:year:edit')")
     @PutMapping("/year")
     public AjaxResult yearEdit(@RequestBody PublisherYear year) {
+        if (!yearService.checkYearUnique(year)) {
+            return error("该杂志下年份已存在");
+        }
         return toAjax(yearService.updateYear(year));
     }
 
@@ -136,6 +145,13 @@ public class PublisherOnlineController extends BaseController {
         return toAjax(issueService.publishIssue(issue));
     }
 
+    /** 刊期业务动作：subscribe=订阅发送 doi=DOI注册 cstr=CSTR注册 baidu=百度发布 */
+    @PreAuthorize("@ss.hasPermi('publisher:issue:edit')")
+    @PutMapping("/issue/action/{action}/{issueId}")
+    public AjaxResult issueAction(@PathVariable String action, @PathVariable Long issueId) {
+        return toAjax(issueService.executeIssueAction(issueId, action));
+    }
+
     // ========== 栏目管理 ==========
 
     @PreAuthorize("@ss.hasPermi('publisher:column:list')")
@@ -155,12 +171,18 @@ public class PublisherOnlineController extends BaseController {
     @PreAuthorize("@ss.hasPermi('publisher:column:add')")
     @PostMapping("/column")
     public AjaxResult columnAdd(@RequestBody PublisherColumn column) {
+        if (!columnService.checkColumnUnique(column)) {
+            return error("该杂志下栏目ID已存在");
+        }
         return toAjax(columnService.insertColumn(column));
     }
 
     @PreAuthorize("@ss.hasPermi('publisher:column:edit')")
     @PutMapping("/column")
     public AjaxResult columnEdit(@RequestBody PublisherColumn column) {
+        if (!columnService.checkColumnUnique(column)) {
+            return error("该杂志下栏目ID已存在");
+        }
         return toAjax(columnService.updateColumn(column));
     }
 
@@ -210,10 +232,52 @@ public class PublisherOnlineController extends BaseController {
         return toAjax(articleService.batchPublishArticles(articleIds));
     }
 
+    /**
+     * 批量发布：导入过刊 Excel 元数据，或 ZIP 全文 PDF（文件名=稿件编号）
+     */
+    @Log(title = "批量发布文章", businessType = BusinessType.IMPORT)
+    @PreAuthorize("@ss.hasPermi('publisher:article:batchPublish')")
+    @PostMapping("/article/batchImport")
+    public AjaxResult articleBatchImport(MultipartFile file, boolean updateSupport) throws Exception {
+        if (file == null || file.isEmpty()) {
+            return error("请选择要导入的文件");
+        }
+        String filename = file.getOriginalFilename();
+        if (filename != null && filename.toLowerCase().endsWith(".zip")) {
+            String message = articleService.importPdfZip(file, getUsername());
+            return success(message);
+        }
+        ExcelUtil<PublisherArticleBatchImport> util = new ExcelUtil<PublisherArticleBatchImport>(PublisherArticleBatchImport.class);
+        List<PublisherArticleBatchImport> rows = util.importExcel(file.getInputStream());
+        String message = articleService.importArticles(rows, updateSupport, getUsername());
+        return success(message);
+    }
+
+    /**
+     * 下载过刊导入模板（表头与样表字段一一对应）
+     */
+    @PreAuthorize("@ss.hasPermi('publisher:article:batchPublish')")
+    @PostMapping("/article/importTemplate")
+    public void articleImportTemplate(HttpServletResponse response) {
+        ExcelUtil<PublisherArticleBatchImport> util = new ExcelUtil<PublisherArticleBatchImport>(PublisherArticleBatchImport.class);
+        util.importTemplateExcel(response, "过刊稿件明细");
+    }
+
     @PreAuthorize("@ss.hasPermi('publisher:article:cnkiCheck')")
+    @Log(title = "知网标题核对", businessType = BusinessType.UPDATE)
     @PostMapping("/article/cnkiCheck")
     public AjaxResult articleCnkiCheck(@RequestBody PublisherArticle article) {
         return toAjax(articleService.cnkiCheck(article));
+    }
+
+    /**
+     * 引用次数同步：将知网引用次数写入被引次数
+     */
+    @PreAuthorize("@ss.hasPermi('publisher:article:cnkiCheck')")
+    @Log(title = "知网引用次数同步", businessType = BusinessType.UPDATE)
+    @PutMapping("/article/syncCnkiCited/{articleIds}")
+    public AjaxResult articleSyncCnkiCited(@PathVariable Long[] articleIds) {
+        return toAjax(articleService.syncCnkiCitedCount(articleIds));
     }
 
     // ========== 评论管理 ==========
@@ -227,9 +291,17 @@ public class PublisherOnlineController extends BaseController {
     }
 
     @PreAuthorize("@ss.hasPermi('publisher:comment:audit')")
+    @Log(title = "文章评论", businessType = BusinessType.UPDATE)
     @PutMapping("/comment/audit")
     public AjaxResult commentAudit(@RequestBody PublisherComment comment) {
         return toAjax(commentService.auditComment(comment));
+    }
+
+    @PreAuthorize("@ss.hasPermi('publisher:comment:remove')")
+    @Log(title = "文章评论", businessType = BusinessType.DELETE)
+    @DeleteMapping("/comment/{commentIds}")
+    public AjaxResult commentRemove(@PathVariable Long[] commentIds) {
+        return toAjax(commentService.deleteCommentByIds(commentIds));
     }
 
     // ========== 虚拟专辑管理 ==========
@@ -242,16 +314,31 @@ public class PublisherOnlineController extends BaseController {
         return getDataTable(list);
     }
 
+    @PreAuthorize("@ss.hasPermi('publisher:album:query')")
+    @GetMapping("/album/{albumId}")
+    public AjaxResult albumGetInfo(@PathVariable Long albumId) {
+        return success(albumService.selectAlbumById(albumId));
+    }
+
     @PreAuthorize("@ss.hasPermi('publisher:album:add')")
+    @Log(title = "虚拟专辑", businessType = BusinessType.INSERT)
     @PostMapping("/album")
     public AjaxResult albumAdd(@RequestBody PublisherVirtualAlbum album) {
         return toAjax(albumService.insertAlbum(album));
     }
 
     @PreAuthorize("@ss.hasPermi('publisher:album:edit')")
+    @Log(title = "虚拟专辑", businessType = BusinessType.UPDATE)
     @PutMapping("/album")
     public AjaxResult albumEdit(@RequestBody PublisherVirtualAlbum album) {
         return toAjax(albumService.updateAlbum(album));
+    }
+
+    @PreAuthorize("@ss.hasPermi('publisher:album:remove')")
+    @Log(title = "虚拟专辑", businessType = BusinessType.DELETE)
+    @DeleteMapping("/album/{albumIds}")
+    public AjaxResult albumRemove(@PathVariable Long[] albumIds) {
+        return toAjax(albumService.deleteAlbumByIds(albumIds));
     }
 
     @PreAuthorize("@ss.hasPermi('publisher:album:addArticle')")

@@ -9,5 +9,6 @@ public interface EditorAuditMapper {
     public List<EditorAudit> selectAuditByManuscriptId(Long manuscriptId);
     public int insertAudit(EditorAudit audit);
     public int updateAudit(EditorAudit audit);
+    public int updateAuditStatus(EditorAudit audit);
     public int deleteAuditById(Long auditId);
 }

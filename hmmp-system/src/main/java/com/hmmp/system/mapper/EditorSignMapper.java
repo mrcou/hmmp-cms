@@ -9,4 +9,5 @@ public interface EditorSignMapper {
     public EditorSign selectSignByManuscriptId(Long manuscriptId);
     public int insertSign(EditorSign sign);
     public int updateSign(EditorSign sign);
+    public int deleteSignById(Long signId);
 }

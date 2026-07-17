@@ -8,6 +8,22 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hmmp.common.utils.SecurityUtils;
 import com.hmmp.system.domain.EditorManuscript;
 import com.hmmp.system.domain.EditorManuscriptLog;
+import com.hmmp.system.domain.StatAuditCycle;
+import com.hmmp.system.domain.StatEditArticleCycle;
+import com.hmmp.system.domain.StatEditProcessCycle;
+import com.hmmp.system.domain.StatPublishCycle;
+import com.hmmp.system.domain.StatReviewCycle;
+import com.hmmp.system.domain.StatEditProduction;
+import com.hmmp.system.domain.StatEditProductionQuery;
+import com.hmmp.system.domain.StatEditWork;
+import com.hmmp.system.domain.StatEditWorkQuery;
+import com.hmmp.system.domain.StatJournalQuery;
+import com.hmmp.system.domain.StatJournalTotal;
+import com.hmmp.system.domain.StatReviewerAudit;
+import com.hmmp.system.domain.StatReviewerAuditQuery;
+import com.hmmp.system.domain.StatReferencedArticle;
+import com.hmmp.system.domain.StatUser;
+import com.hmmp.system.domain.StatUserQuery;
 import com.hmmp.system.mapper.EditorManuscriptMapper;
 import com.hmmp.system.mapper.EditorManuscriptLogMapper;
 import com.hmmp.system.service.IEditorManuscriptLogService;
@@ -30,6 +46,140 @@ public class EditorManuscriptServiceImpl implements IEditorManuscriptService {
     @Override
     public List<EditorManuscript> selectManuscriptList(EditorManuscript manuscript) {
         return manuscriptMapper.selectManuscriptList(manuscript);
+    }
+
+    @Override
+    public List<StatAuditCycle> selectAuditCycleList(StatAuditCycle query) {
+        return manuscriptMapper.selectAuditCycleList(query);
+    }
+
+    @Override
+    public List<StatPublishCycle> selectPublishCycleList(StatPublishCycle query) {
+        return manuscriptMapper.selectPublishCycleList(query);
+    }
+
+    @Override
+    public List<StatEditProcessCycle> selectEditProcessCycleList(StatEditProcessCycle query) {
+        return manuscriptMapper.selectEditProcessCycleList(query);
+    }
+
+    @Override
+    public List<StatEditArticleCycle> selectEditArticleCycleList(StatEditArticleCycle query) {
+        return manuscriptMapper.selectEditArticleCycleList(query);
+    }
+
+    @Override
+    public List<StatReviewCycle> selectReviewCycleList(StatReviewCycle query) {
+        return manuscriptMapper.selectReviewCycleList(query);
+    }
+
+    @Override
+    public StatJournalTotal selectJournalTotal(StatJournalQuery query) {
+        StatJournalTotal total = manuscriptMapper.selectJournalTotal(query);
+        if (total == null) {
+            total = new StatJournalTotal();
+        }
+        fillJournalAverages(total, query);
+        return total;
+    }
+
+    @Override
+    public List<StatEditWork> selectEditWorkList(StatEditWorkQuery query) {
+        return manuscriptMapper.selectEditWorkList(query);
+    }
+
+    @Override
+    public List<StatEditProduction> selectEditProductionList(StatEditProductionQuery query) {
+        return manuscriptMapper.selectEditProductionList(query);
+    }
+
+    @Override
+    public List<StatUser> selectUserStatList(StatUserQuery query) {
+        return manuscriptMapper.selectUserStatList(query);
+    }
+
+    @Override
+    public List<StatReviewerAudit> selectReviewerAuditList(StatReviewerAuditQuery query) {
+        return manuscriptMapper.selectReviewerAuditList(query);
+    }
+
+    @Override
+    public List<StatReferencedArticle> selectReferencedArticleList(StatReferencedArticle query) {
+        return manuscriptMapper.selectReferencedArticleList(query);
+    }
+
+    /**
+     * 按年份跨度补齐年平均与比率字段
+     */
+    private void fillJournalAverages(StatJournalTotal total, StatJournalQuery query) {
+        int yearSpan = resolveYearSpan(query);
+        total.setYearSpan(yearSpan);
+        long receive = nz(total.getReceiveCount());
+        total.setReceiveCount(receive);
+        total.setPublishCount(nz(total.getPublishCount()));
+        total.setRejectCount(nz(total.getRejectCount()));
+        total.setInitialRejectCount(nz(total.getInitialRejectCount()));
+        total.setReviewRejectCount(nz(total.getReviewRejectCount()));
+        total.setReReviewRejectCount(nz(total.getReReviewRejectCount()));
+        total.setFinalRejectCount(nz(total.getFinalRejectCount()));
+        total.setAdoptCount(nz(total.getAdoptCount()));
+        total.setSendReviewCount(nz(total.getSendReviewCount()));
+        total.setFundCount(nz(total.getFundCount()));
+        total.setInitialReviewTimes(nz(total.getInitialReviewTimes()));
+        total.setPeerReviewTimes(nz(total.getPeerReviewTimes()));
+        total.setReReviewTimes(nz(total.getReReviewTimes()));
+        total.setFinalReviewTimes(nz(total.getFinalReviewTimes()));
+
+        total.setAvgReceiveCount(avg(receive, yearSpan));
+        total.setAvgPublishCount(avg(total.getPublishCount(), yearSpan));
+        total.setAvgRejectCount(avg(total.getRejectCount(), yearSpan));
+        total.setAvgInitialRejectCount(avg(total.getInitialRejectCount(), yearSpan));
+        total.setAvgReviewRejectCount(avg(total.getReviewRejectCount(), yearSpan));
+        total.setAvgReReviewRejectCount(avg(total.getReReviewRejectCount(), yearSpan));
+        total.setAvgFinalRejectCount(avg(total.getFinalRejectCount(), yearSpan));
+        total.setAvgAdoptCount(avg(total.getAdoptCount(), yearSpan));
+        total.setAvgSendReviewCount(avg(total.getSendReviewCount(), yearSpan));
+        total.setAvgFundCount(avg(total.getFundCount(), yearSpan));
+
+        total.setPublishRate(rate(total.getPublishCount(), receive));
+        total.setRejectRate(rate(total.getRejectCount(), receive));
+        total.setInitialRejectRate(rate(total.getInitialRejectCount(), receive));
+        total.setReviewRejectRate(rate(total.getReviewRejectCount(), receive));
+        total.setReReviewRejectRate(rate(total.getReReviewRejectCount(), receive));
+        total.setFinalRejectRate(rate(total.getFinalRejectCount(), receive));
+        total.setAdoptRate(rate(total.getAdoptCount(), receive));
+        total.setSendReviewRate(rate(total.getSendReviewCount(), receive));
+        total.setFundRate(rate(total.getFundCount(), receive));
+    }
+
+    private static long nz(Long value) {
+        return value == null ? 0L : value;
+    }
+
+    private static double avg(long value, int yearSpan) {
+        return Math.round(value * 100.0 / yearSpan) / 100.0;
+    }
+
+    private static double rate(long part, long total) {
+        if (total <= 0) {
+            return 0D;
+        }
+        return Math.round(part * 10000.0 / total) / 100.0;
+    }
+
+    private static int resolveYearSpan(StatJournalQuery query) {
+        if (query == null || query.getBeginTime() == null || query.getEndTime() == null) {
+            return 1;
+        }
+        try {
+            String begin = query.getBeginTime().trim();
+            String end = query.getEndTime().trim();
+            int beginYear = Integer.parseInt(begin.substring(0, 4));
+            int endYear = Integer.parseInt(end.substring(0, 4));
+            return Math.max(1, endYear - beginYear + 1);
+        } catch (Exception e) {
+            return 1;
+        }
     }
 
     @Override

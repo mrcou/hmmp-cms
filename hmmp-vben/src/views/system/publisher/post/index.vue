@@ -121,31 +121,30 @@ onMounted(() => {
 
 <template>
   <div class="p-4">
-    <a-form layout="inline" class="mb-4">
-      <a-form-item label="快递单号">
-        <a-input v-model:value="searchForm.postTrackingNo" placeholder="请输入快递单号" style="width: 160px" />
-      </a-form-item>
-      <a-form-item label="订户">
-        <a-input v-model:value="searchForm.subscriberName" placeholder="请输入订户名称" style="width: 160px" />
-      </a-form-item>
-      <a-form-item label="寄书状态">
-        <a-select v-model:value="searchForm.postStatus" placeholder="请选择" allow-clear style="width: 120px">
-          <a-select-option value="0">待寄出</a-select-option>
-          <a-select-option value="1">已寄出</a-select-option>
-          <a-select-option value="2">已签收</a-select-option>
-          <a-select-option value="3">已退回</a-select-option>
-        </a-select>
-      </a-form-item>
-      <a-form-item>
-        <a-space>
-          <a-button type="primary" @click="handleSearch">查询</a-button>
-          <a-button @click="handleReset">重置</a-button>
-        </a-space>
-      </a-form-item>
-    </a-form>
-
-    <div class="mb-4">
+    <div class="mb-4 flex items-center justify-between">
       <a-button type="primary" @click="handleAdd">新增寄书记录</a-button>
+      <a-form layout="inline">
+        <a-form-item label="快递单号">
+          <a-input v-model:value="searchForm.postTrackingNo" placeholder="请输入快递单号" style="width: 160px" />
+        </a-form-item>
+        <a-form-item label="订户">
+          <a-input v-model:value="searchForm.subscriberName" placeholder="请输入订户名称" style="width: 160px" />
+        </a-form-item>
+        <a-form-item label="寄书状态">
+          <a-select v-model:value="searchForm.postStatus" placeholder="请选择" allow-clear style="width: 120px">
+            <a-select-option value="0">待寄出</a-select-option>
+            <a-select-option value="1">已寄出</a-select-option>
+            <a-select-option value="2">已签收</a-select-option>
+            <a-select-option value="3">已退回</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button type="primary" @click="handleSearch">查询</a-button>
+            <a-button @click="handleReset">重置</a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
     </div>
 
     <a-table

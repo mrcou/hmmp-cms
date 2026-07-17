@@ -123,38 +123,37 @@ onMounted(() => {
 
 <template>
   <div class="p-4">
-    <a-form layout="inline" class="mb-4">
-      <a-form-item label="订单号">
-        <a-input v-model:value="searchForm.orderNo" placeholder="请输入订单号" style="width: 160px" />
-      </a-form-item>
-      <a-form-item label="订户">
-        <a-input v-model:value="searchForm.subscriberName" placeholder="请输入订户名称" style="width: 160px" />
-      </a-form-item>
-      <a-form-item label="支付状态">
-        <a-select v-model:value="searchForm.payStatus" placeholder="请选择" allow-clear style="width: 120px">
-          <a-select-option value="0">待支付</a-select-option>
-          <a-select-option value="1">已支付</a-select-option>
-          <a-select-option value="2">已退款</a-select-option>
-        </a-select>
-      </a-form-item>
-      <a-form-item label="订单状态">
-        <a-select v-model:value="searchForm.orderStatus" placeholder="请选择" allow-clear style="width: 120px">
-          <a-select-option value="0">待处理</a-select-option>
-          <a-select-option value="1">处理中</a-select-option>
-          <a-select-option value="2">已完成</a-select-option>
-          <a-select-option value="3">已取消</a-select-option>
-        </a-select>
-      </a-form-item>
-      <a-form-item>
-        <a-space>
-          <a-button type="primary" @click="handleSearch">查询</a-button>
-          <a-button @click="handleReset">重置</a-button>
-        </a-space>
-      </a-form-item>
-    </a-form>
-
-    <div class="mb-4">
+    <div class="mb-4 flex items-center justify-between">
       <a-button type="primary" @click="handleAdd">新增订单</a-button>
+      <a-form layout="inline">
+        <a-form-item label="订单号">
+          <a-input v-model:value="searchForm.orderNo" placeholder="请输入订单号" style="width: 160px" />
+        </a-form-item>
+        <a-form-item label="订户">
+          <a-input v-model:value="searchForm.subscriberName" placeholder="请输入订户名称" style="width: 160px" />
+        </a-form-item>
+        <a-form-item label="支付状态">
+          <a-select v-model:value="searchForm.payStatus" placeholder="请选择" allow-clear style="width: 120px">
+            <a-select-option value="0">待支付</a-select-option>
+            <a-select-option value="1">已支付</a-select-option>
+            <a-select-option value="2">已退款</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="订单状态">
+          <a-select v-model:value="searchForm.orderStatus" placeholder="请选择" allow-clear style="width: 120px">
+            <a-select-option value="0">待处理</a-select-option>
+            <a-select-option value="1">处理中</a-select-option>
+            <a-select-option value="2">已完成</a-select-option>
+            <a-select-option value="3">已取消</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button type="primary" @click="handleSearch">查询</a-button>
+            <a-button @click="handleReset">重置</a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
     </div>
 
     <a-table

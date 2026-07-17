@@ -1,159 +1,647 @@
 <script lang="ts" setup>
+/**
+ * 年份管理 —— 对齐旧系统列表：杂志/会议筛选 + 快捷检索 + 表格 + 删除/添加/显示设置
+ */
 import type { PublisherApi } from '#/api/biz/publisher';
 
-import { onMounted, reactive, ref } from 'vue';
-import { message } from 'antdv-next';
+import { computed, onMounted, reactive, ref } from 'vue';
+
+import { VbenTableAction } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
+import { preferences } from '@vben/preferences';
+
+import { message, Modal, Upload } from 'antdv-next';
+
+import * as meetingApi from '#/api/biz/meeting';
 import * as publisherApi from '#/api/biz/publisher';
 
+defineOptions({ name: 'PublisherIssueYear' });
+
+type UploadField = 'catalogFile';
+
+const currentYear = new Date().getFullYear();
 const loading = ref(false);
 const dataSource = ref<PublisherApi.Year[]>([]);
-const pagination = reactive({ current: 1, pageSize: 10, total: 0 });
-const searchForm = reactive({ year: undefined as number | undefined });
-const modalVisible = ref(false);
-const modalTitle = ref('新增年份');
-const formData = reactive<PublisherApi.Year>({ year: new Date().getFullYear(), status: '0', remark: '' });
-const isEdit = ref(false);
+const selectedKeys = ref<number[]>([]);
 
-const columns = [
-  { title: '年份ID', dataIndex: 'yearId', key: 'yearId', width: 100 },
-  { title: '年份', dataIndex: 'year', key: 'year', width: 120 },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
-  { title: '备注', dataIndex: 'remark', key: 'remark' },
-  { title: '操作', key: 'action', width: 180, fixed: 'right' as const },
+const pagination = reactive({
+  current: 1,
+  pageSize: 5,
+  total: 0,
+  showSizeChanger: true,
+  pageSizeOptions: ['5', '10', '20', '50'],
+  showTotal: (total: number, range: [number, number]) =>
+    `当前显示 ${range[0]} - ${range[1]} 条，共 ${total} 条记录`,
+});
+
+/** 顶栏筛选 */
+const filters = reactive({
+  journalCode: undefined as string | undefined,
+  meetingId: undefined as number | undefined,
+  searchField: 'journalCode' as
+    | 'journalCode'
+    | 'year'
+    | 'volume'
+    | 'nameCn'
+    | 'nameEn',
+  searchValue: '',
+});
+
+const searchFieldOptions = [
+  { value: 'journalCode', label: '杂志编号' },
+  { value: 'year', label: '年份' },
+  { value: 'volume', label: '卷号' },
+  { value: 'nameCn', label: '中文名' },
+  { value: 'nameEn', label: '英文名' },
 ];
+
+const statusOptions = [
+  { value: '0', label: '正常' },
+  { value: '1', label: '停用' },
+];
+
+/** antdv-next Select 不会转发 a-select-option 子节点，必须用 options */
+const magazineOptions = computed(() => [
+  {
+    value: 'ddhl',
+    label: preferences.app.name || '默认杂志',
+  },
+]);
+
+const meetingOptions = ref<{ label: string; value: number }[]>([]);
+
+async function loadMeetingOptions() {
+  try {
+    const res = (await meetingApi.getMeetingList({
+      pageNum: 1,
+      pageSize: 200,
+    })) as any;
+    meetingOptions.value = (res?.rows ?? [])
+      .map((r: any) => ({
+        value: r.meetingId as number,
+        label: (r.meetingName || r.title || `会议#${r.meetingId}`) as string,
+      }))
+      .filter((m: { value: number }) => m.value != null);
+  } catch {
+    meetingOptions.value = [];
+  }
+}
+
+const allColumns = [
+  { key: 'journalCode', title: '杂志编号', dataIndex: 'journalCode', width: 120 },
+  { key: 'year', title: '年份', dataIndex: 'year', width: 90 },
+  { key: 'volume', title: '卷号', dataIndex: 'volume', width: 90 },
+  { key: 'nameCn', title: '中文名', dataIndex: 'nameCn', width: 140 },
+  { key: 'nameEn', title: '英文名', dataIndex: 'nameEn', width: 140 },
+  { key: 'catalogFile', title: '目录文件', dataIndex: 'catalogFile', ellipsis: true, width: 180 },
+  { key: 'isFree', title: '免费访问', dataIndex: 'isFree', width: 100 },
+  { key: 'meetingId', title: '会议', dataIndex: 'meetingId', ellipsis: true, width: 160 },
+  { key: 'status', title: '状态', dataIndex: 'status', width: 90 },
+  { key: 'remark', title: '备注', dataIndex: 'remark', ellipsis: true, width: 180 },
+  { key: 'action', title: '操作', dataIndex: 'action', width: 90, fixed: 'right' as const },
+];
+
+const visibleColumnKeys = ref(allColumns.map((c) => c.key));
+const columnDrawerOpen = ref(false);
+
+const columns = computed(() => {
+  const visible = new Set(visibleColumnKeys.value);
+  return allColumns.filter((c) => visible.has(c.key));
+});
+
+const rowSelection = computed(() => ({
+  selectedRowKeys: selectedKeys.value,
+  onChange: (keys: (number | string)[]) => {
+    selectedKeys.value = keys.map(Number);
+  },
+}));
+
+function buildSearchParams() {
+  const params: Record<string, any> = {
+    pageNum: pagination.current,
+    pageSize: pagination.pageSize,
+  };
+  if (filters.journalCode) {
+    params.journalCode = filters.journalCode;
+  }
+  if (filters.meetingId != null) {
+    params.meetingId = filters.meetingId;
+  }
+  const keyword = filters.searchValue.trim();
+  if (keyword) {
+    if (filters.searchField === 'year' || filters.searchField === 'volume') {
+      const num = Number(keyword);
+      if (!Number.isNaN(num)) {
+        params[filters.searchField] = num;
+      }
+    } else {
+      params[filters.searchField] = keyword;
+    }
+  }
+  return params;
+}
 
 async function fetchList() {
   loading.value = true;
   try {
-    const res = await publisherApi.getYearList({
-      pageNum: pagination.current,
-      pageSize: pagination.pageSize,
-      ...searchForm,
-    });
-    dataSource.value = res.data?.rows ?? res.data ?? [];
-    pagination.total = res.data?.total ?? 0;
+    const res = (await publisherApi.getYearList(buildSearchParams())) as any;
+    dataSource.value = res?.rows ?? res?.data?.rows ?? [];
+    pagination.total = res?.total ?? res?.data?.total ?? 0;
+    selectedKeys.value = [];
+  } catch {
+    message.error('加载年份列表失败');
+    dataSource.value = [];
+    pagination.total = 0;
   } finally {
     loading.value = false;
   }
 }
 
-function handleSearch() {
+function onSearch() {
   pagination.current = 1;
   fetchList();
 }
 
-function handleReset() {
-  searchForm.year = undefined;
+function onReset() {
+  filters.journalCode = undefined;
+  filters.meetingId = undefined;
+  filters.searchField = 'journalCode';
+  filters.searchValue = '';
   pagination.current = 1;
   fetchList();
+}
+
+function onPageChange(page: number, pageSize: number) {
+  pagination.current = page;
+  pagination.pageSize = pageSize;
+  fetchList();
+}
+
+/** 新增 / 编辑 */
+const drawerOpen = ref(false);
+const drawerTitle = ref('添加年份');
+const submitting = ref(false);
+const isEdit = ref(false);
+const formData = reactive<PublisherApi.Year>({
+  journalCode: 'ddhl',
+  year: currentYear,
+  volume: 1,
+  nameCn: '',
+  nameEn: '',
+  catalogFile: '',
+  isFree: '0',
+  meetingId: undefined,
+  status: '0',
+  remark: '',
+});
+const uploadFileLists = reactive<Record<UploadField, any[]>>({
+  catalogFile: [],
+});
+
+function resetForm() {
+  formData.yearId = undefined;
+  formData.journalCode = filters.journalCode || 'ddhl';
+  formData.year = currentYear;
+  formData.volume = 1;
+  formData.nameCn = `${formData.year}年`;
+  formData.nameEn = '';
+  formData.catalogFile = '';
+  formData.isFree = '0';
+  formData.meetingId = filters.meetingId;
+  formData.status = '0';
+  formData.remark = '';
+  uploadFileLists.catalogFile = [];
 }
 
 function handleAdd() {
   isEdit.value = false;
-  modalTitle.value = '新增年份';
-  formData.year = new Date().getFullYear();
-  formData.status = '0';
-  formData.remark = '';
-  modalVisible.value = true;
+  drawerTitle.value = '添加年份';
+  resetForm();
+  drawerOpen.value = true;
 }
 
 function handleEdit(record: PublisherApi.Year) {
   isEdit.value = true;
-  modalTitle.value = '编辑年份';
-  formData.yearId = record.yearId;
-  formData.year = record.year;
-  formData.status = record.status;
-  formData.remark = record.remark;
-  modalVisible.value = true;
+  drawerTitle.value = '修改年份';
+  resetForm();
+  Object.assign(formData, {
+    yearId: record.yearId,
+    journalCode: record.journalCode || 'ddhl',
+    year: record.year,
+    volume: record.volume,
+    nameCn: record.nameCn || '',
+    nameEn: record.nameEn || '',
+    catalogFile: record.catalogFile || '',
+    isFree: record.isFree ?? '0',
+    meetingId: record.meetingId,
+    status: record.status || '0',
+    remark: record.remark || '',
+  });
+  drawerOpen.value = true;
 }
 
-async function handleDelete(record: PublisherApi.Year) {
-  await publisherApi.deleteYear([record.yearId!]);
-  message.success('删除成功');
-  fetchList();
+function onYearChange(val: number | null) {
+  if (val != null && !isEdit.value) {
+    formData.nameCn = `${val}年`;
+  }
+}
+
+function makeUploadBefore(field: UploadField) {
+  return (file: File) => {
+    uploadFieldFile(field, file);
+    return Upload.LIST_IGNORE;
+  };
+}
+
+async function uploadFieldFile(field: UploadField, file: File) {
+  try {
+    const res: any = await publisherApi.uploadPublisherFile(file);
+    const filePath =
+      res?.fileName ?? res?.data?.fileName ?? res?.url ?? res?.data?.url ?? '';
+    if (!filePath) {
+      message.warning('上传成功，但未返回文件路径');
+      return;
+    }
+    formData[field] = filePath;
+    uploadFileLists[field] = [
+      {
+        uid: `${field}-${Date.now()}`,
+        name: file.name,
+        status: 'done',
+      },
+    ];
+    message.success('上传成功');
+  } catch {
+    message.error('上传失败');
+  }
+}
+
+function getMeetingLabel(meetingId?: number) {
+  if (meetingId == null) {
+    return '';
+  }
+  return (
+    meetingOptions.value.find((item) => item.value === meetingId)?.label ||
+    `会议#${meetingId}`
+  );
+}
+
+function statusLabel(status?: string) {
+  return statusOptions.find((item) => item.value === status)?.label || '正常';
+}
+
+function buildPayload(): PublisherApi.Year | null {
+  const journalCode = formData.journalCode?.trim();
+  if (!journalCode) {
+    message.warning('请选择杂志名称');
+    return null;
+  }
+  if (formData.year == null) {
+    message.warning('请填写年份');
+    return null;
+  }
+  return {
+    ...formData,
+    journalCode,
+    year: Number(formData.year),
+    volume: formData.volume == null ? undefined : Number(formData.volume),
+    nameCn: formData.nameCn?.trim() || `${formData.year}年`,
+    nameEn: formData.nameEn?.trim() || '',
+    catalogFile: formData.catalogFile?.trim() || '',
+    isFree: formData.isFree || '0',
+    status: formData.status || '0',
+    remark: formData.remark?.trim() || '',
+  };
 }
 
 async function handleSubmit() {
-  if (isEdit.value) {
-    await publisherApi.updateYear({ ...formData });
-    message.success('编辑成功');
-  } else {
-    await publisherApi.createYear({ ...formData });
-    message.success('新增成功');
+  const payload = buildPayload();
+  if (!payload) {
+    return;
   }
-  modalVisible.value = false;
-  fetchList();
+  submitting.value = true;
+  try {
+    if (isEdit.value) {
+      await publisherApi.updateYear(payload);
+      message.success('修改成功');
+    } else {
+      await publisherApi.createYear(payload);
+      message.success('添加成功');
+    }
+    drawerOpen.value = false;
+    fetchList();
+  } finally {
+    submitting.value = false;
+  }
 }
 
-function handleTableChange(pag: { current: number; pageSize: number }) {
-  pagination.current = pag.current;
-  pagination.pageSize = pag.pageSize;
-  fetchList();
+async function handleBatchDelete() {
+  if (!selectedKeys.value.length) {
+    message.warning('请先勾选要删除的记录');
+    return;
+  }
+  Modal.confirm({
+    title: '确认删除',
+    content: `确定删除选中的 ${selectedKeys.value.length} 条年份记录吗？`,
+    okType: 'danger',
+    async onOk() {
+      await publisherApi.deleteYear(selectedKeys.value);
+      message.success('删除成功');
+      fetchList();
+    },
+  });
 }
 
 onMounted(() => {
   fetchList();
+  loadMeetingOptions();
 });
 </script>
 
 <template>
   <div class="p-4">
-    <a-form layout="inline" class="mb-4">
-      <a-form-item label="年份">
-        <a-input-number v-model:value="searchForm.year" placeholder="请输入年份" :min="2000" :max="2100" style="width: 160px" />
-      </a-form-item>
-      <a-form-item>
-        <a-space>
-          <a-button type="primary" @click="handleSearch">查询</a-button>
-          <a-button @click="handleReset">重置</a-button>
-        </a-space>
-      </a-form-item>
-    </a-form>
-
-    <div class="mb-4">
-      <a-button type="primary" @click="handleAdd">新增年份</a-button>
+    <!-- 顶部筛选（统一图示格式：标签 + 控件 + 查询/重置） -->
+    <div class="mb-4 flex items-center justify-between">
+      <a-form layout="inline" class="flex w-full items-center justify-between">
+        <div class="flex items-center">
+          <a-form-item label="杂志名称">
+            <a-select
+              v-model:value="filters.journalCode"
+              allow-clear
+              placeholder="请选择"
+              style="width: 160px"
+              :options="magazineOptions"
+            />
+          </a-form-item>
+          <a-form-item label="会议">
+            <a-select
+              v-model:value="filters.meetingId"
+              allow-clear
+              placeholder="请选择"
+              style="width: 160px"
+              :options="meetingOptions"
+            />
+          </a-form-item>
+          <a-form-item label="检索项">
+            <a-select
+              v-model:value="filters.searchField"
+              style="width: 120px"
+              :options="searchFieldOptions"
+            />
+          </a-form-item>
+          <a-form-item label="关键词">
+            <a-input
+              v-model:value="filters.searchValue"
+              allow-clear
+              placeholder="请输入搜索词"
+              style="width: 200px"
+              @press-enter="onSearch"
+            />
+          </a-form-item>
+          <a-form-item>
+            <a-space>
+              <a-button type="primary" @click="onSearch">查询</a-button>
+              <a-button @click="onReset">重置</a-button>
+            </a-space>
+          </a-form-item>
+        </div>
+      </a-form>
     </div>
 
     <a-table
       :columns="columns"
       :data-source="dataSource"
-      :pagination="pagination"
       :loading="loading"
+      :pagination="pagination"
+      :row-selection="rowSelection"
+      :scroll="{ x: 1400 }"
       row-key="yearId"
-      @change="handleTableChange"
+      size="middle"
+      @change="(pg: any) => onPageChange(pg.current, pg.pageSize)"
     >
+      <template #emptyText>
+        <a-empty description="未查询到任何数据!!" />
+      </template>
+
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'status'">
-          <a-tag :color="record.status === '0' ? 'green' : 'red'">
-            {{ record.status === '0' ? '启用' : '停用' }}
-          </a-tag>
-        </template>
         <template v-if="column.key === 'action'">
-          <a-space>
-            <a-button type="link" size="small" @click="handleEdit(record)">编辑</a-button>
-            <a-popconfirm title="确认删除该年份吗？" @confirm="handleDelete(record)">
-              <a-button type="link" size="small" danger>删除</a-button>
-            </a-popconfirm>
-          </a-space>
+          <VbenTableAction
+            :actions="[
+              { text: '修改', icon: 'lucide:edit', onClick: () => handleEdit(record) },
+            ]"
+          />
+        </template>
+        <template v-else-if="column.key === 'isFree'">
+          {{ record.isFree === '1' ? '是' : '否' }}
+        </template>
+        <template v-else-if="column.key === 'volume'">
+          {{ record.volume ?? '' }}
+        </template>
+        <template v-else-if="column.key === 'catalogFile'">
+          {{ record.catalogFile || '' }}
+        </template>
+        <template v-else-if="column.key === 'meetingId'">
+          {{ getMeetingLabel(record.meetingId) }}
+        </template>
+        <template v-else-if="column.key === 'status'">
+          {{ statusLabel(record.status) }}
         </template>
       </template>
     </a-table>
 
-    <a-modal v-model:open="modalVisible" :title="modalTitle" @ok="handleSubmit" destroy-on-close>
-      <a-form layout="vertical">
-        <a-form-item label="年份" required>
-          <a-input-number v-model:value="formData.year" :min="2000" :max="2100" style="width: 100%" />
+    <!-- 底部操作 -->
+    <div class="batch-actions mt-4 flex flex-wrap gap-2 border-t pt-4">
+      <a-button type="primary" @click="handleAdd">
+        <IconifyIcon icon="lucide:plus" class="mr-1 size-3.5" />
+        添加
+      </a-button>
+      <a-button type="primary" danger @click="handleBatchDelete">
+        <IconifyIcon icon="lucide:trash-2" class="mr-1 size-3.5" />
+        删除
+      </a-button>
+      <a-button type="primary" @click="columnDrawerOpen = true">
+        <IconifyIcon icon="lucide:settings-2" class="mr-1 size-3.5" />
+        显示设置
+      </a-button>
+    </div>
+
+    <!-- 新增 / 修改 -->
+    <a-drawer
+      v-model:open="drawerOpen"
+      :title="drawerTitle"
+      placement="right"
+      :width="680"
+      destroy-on-close
+      class="year-drawer"
+    >
+      <a-form layout="vertical" class="year-form">
+        <a-divider orientation="left">基础信息</a-divider>
+        <div class="form-grid">
+          <a-form-item label="杂志名称" required>
+            <a-select
+              v-model:value="formData.journalCode"
+              :options="magazineOptions"
+              placeholder="请选择杂志"
+            />
+          </a-form-item>
+          <a-form-item label="年份" required>
+            <a-input-number
+              v-model:value="formData.year"
+              :min="1900"
+              :max="2100"
+              style="width: 100%"
+              @change="onYearChange"
+            />
+          </a-form-item>
+          <a-form-item label="卷号">
+            <a-input-number
+              v-model:value="formData.volume"
+              :min="1"
+              :max="9999"
+              style="width: 100%"
+            />
+          </a-form-item>
+          <a-form-item label="会议">
+            <a-select
+              v-model:value="formData.meetingId"
+              allow-clear
+              placeholder="请选择会议"
+              style="width: 100%"
+              :options="meetingOptions"
+            />
+          </a-form-item>
+        </div>
+
+        <a-divider orientation="left">名称与目录</a-divider>
+        <div class="form-grid">
+          <a-form-item label="中文名">
+            <a-input
+              v-model:value="formData.nameCn"
+              allow-clear
+              placeholder="如 2026年"
+            />
+          </a-form-item>
+          <a-form-item label="英文名">
+            <a-input v-model:value="formData.nameEn" allow-clear />
+          </a-form-item>
+        </div>
+        <a-form-item
+          label="目录文件"
+          extra="如果需要给读者提供目录下载，可在此上传目录文件"
+        >
+          <div class="file-picker">
+            <a-input
+              v-model:value="formData.catalogFile"
+              allow-clear
+              placeholder="目录文件路径或文件名"
+            />
+            <a-upload
+              :before-upload="makeUploadBefore('catalogFile')"
+              :file-list="uploadFileLists.catalogFile"
+              :max-count="1"
+              :show-upload-list="false"
+            >
+              <a-button>
+                <IconifyIcon icon="lucide:folder-open" class="mr-1 size-3.5" />
+                浏览...
+              </a-button>
+            </a-upload>
+          </div>
         </a-form-item>
-        <a-form-item label="状态">
-          <a-select v-model:value="formData.status">
-            <a-select-option value="0">启用</a-select-option>
-            <a-select-option value="1">停用</a-select-option>
-          </a-select>
-        </a-form-item>
+
+        <a-divider orientation="left">发布设置</a-divider>
+        <div class="form-grid form-grid-compact">
+          <a-form-item label="免费访问">
+            <a-switch
+              v-model:checked="formData.isFree"
+              checked-value="1"
+              un-checked-value="0"
+            />
+          </a-form-item>
+          <a-form-item label="状态">
+            <a-select
+              v-model:value="formData.status"
+              style="width: 100%"
+              :options="statusOptions"
+            />
+          </a-form-item>
+        </div>
         <a-form-item label="备注">
-          <a-textarea v-model:value="formData.remark" :rows="3" />
+          <a-textarea v-model:value="formData.remark" :rows="2" />
         </a-form-item>
       </a-form>
-    </a-modal>
+
+      <template #footer>
+        <div class="drawer-footer">
+          <a-button @click="drawerOpen = false">取消</a-button>
+          <a-button type="primary" :loading="submitting" @click="handleSubmit">
+            保存
+          </a-button>
+        </div>
+      </template>
+    </a-drawer>
+
+    <!-- 显示设置 -->
+    <a-drawer
+      v-model:open="columnDrawerOpen"
+      title="显示设置"
+      placement="right"
+      :width="320"
+    >
+      <p class="text-muted-foreground mb-3 text-sm">勾选需要在列表中显示的列：</p>
+      <a-checkbox-group
+        v-model:value="visibleColumnKeys"
+        class="flex flex-col gap-2"
+      >
+        <a-checkbox v-for="col in allColumns" :key="col.key" :value="col.key">
+          {{ col.title }}
+        </a-checkbox>
+      </a-checkbox-group>
+      <div class="mt-6">
+        <a-button type="primary" block @click="columnDrawerOpen = false">
+          确定
+        </a-button>
+      </div>
+    </a-drawer>
   </div>
 </template>
+
+<style scoped>
+.batch-actions :deep(.ant-btn) {
+  min-width: 7rem;
+}
+
+.year-form {
+  padding-bottom: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1rem;
+}
+
+.form-grid-compact {
+  align-items: start;
+}
+
+.file-picker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.drawer-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .form-grid,
+  .file-picker {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

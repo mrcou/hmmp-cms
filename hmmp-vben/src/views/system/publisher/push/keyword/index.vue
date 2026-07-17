@@ -93,26 +93,25 @@ onMounted(() => {
 
 <template>
   <div class="p-4">
-    <a-form layout="inline" class="mb-4">
-      <a-form-item label="关键词">
-        <a-input v-model:value="searchForm.keyword" placeholder="请输入关键词" style="width: 180px" />
-      </a-form-item>
-      <a-form-item label="状态">
-        <a-select v-model:value="searchForm.status" placeholder="请选择" allow-clear style="width: 120px">
-          <a-select-option value="0">启用</a-select-option>
-          <a-select-option value="1">停用</a-select-option>
-        </a-select>
-      </a-form-item>
-      <a-form-item>
-        <a-space>
-          <a-button type="primary" @click="handleSearch">查询</a-button>
-          <a-button @click="handleReset">重置</a-button>
-        </a-space>
-      </a-form-item>
-    </a-form>
-
-    <div class="mb-4">
+    <div class="mb-4 flex items-center justify-between">
       <a-button type="primary" @click="handleAdd">新增关键词推送</a-button>
+      <a-form layout="inline">
+        <a-form-item label="关键词">
+          <a-input v-model:value="searchForm.keyword" placeholder="请输入关键词" style="width: 180px" />
+        </a-form-item>
+        <a-form-item label="状态">
+          <a-select v-model:value="searchForm.status" placeholder="请选择" allow-clear style="width: 120px">
+            <a-select-option value="0">启用</a-select-option>
+            <a-select-option value="1">停用</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button type="primary" @click="handleSearch">查询</a-button>
+            <a-button @click="handleReset">重置</a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
     </div>
 
     <a-table

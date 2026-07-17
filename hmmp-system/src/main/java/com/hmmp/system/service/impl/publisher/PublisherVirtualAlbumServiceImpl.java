@@ -3,8 +3,10 @@ package com.hmmp.system.service.impl.publisher;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.hmmp.common.utils.SecurityUtils;
 import com.hmmp.system.domain.publisher.PublisherVirtualAlbum;
+import com.hmmp.system.mapper.publisher.PublisherAlbumArticleMapper;
 import com.hmmp.system.mapper.publisher.PublisherVirtualAlbumMapper;
 import com.hmmp.system.service.publisher.IPublisherVirtualAlbumService;
 
@@ -13,6 +15,9 @@ public class PublisherVirtualAlbumServiceImpl implements IPublisherVirtualAlbumS
 
     @Autowired
     private PublisherVirtualAlbumMapper albumMapper;
+
+    @Autowired
+    private PublisherAlbumArticleMapper albumArticleMapper;
 
     @Override
     public List<PublisherVirtualAlbum> selectAlbumList(PublisherVirtualAlbum album) {
@@ -37,7 +42,11 @@ public class PublisherVirtualAlbumServiceImpl implements IPublisherVirtualAlbumS
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int deleteAlbumByIds(Long[] albumIds) {
+        for (Long albumId : albumIds) {
+            albumArticleMapper.deleteByAlbumId(albumId);
+        }
         return albumMapper.deleteAlbumByIds(albumIds);
     }
 }

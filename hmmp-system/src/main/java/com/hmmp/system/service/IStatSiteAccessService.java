@@ -2,6 +2,8 @@ package com.hmmp.system.service;
 
 import java.util.List;
 import com.hmmp.system.domain.StatSiteAccess;
+import com.hmmp.system.domain.StatSiteVisit;
+import com.hmmp.system.domain.StatSiteVisitQuery;
 
 /**
  * 网站访问日志 业务层
@@ -17,6 +19,14 @@ public interface IStatSiteAccessService
      * @return 网站访问日志集合
      */
     public List<StatSiteAccess> selectStatSiteAccessList(StatSiteAccess statSiteAccess);
+
+    /**
+     * 按年汇总网站访问量（补齐区间内无数据年份，并计算占比）
+     *
+     * @param query 时间区间
+     * @return 按年汇总列表
+     */
+    public List<StatSiteVisit> selectSiteVisitByYear(StatSiteVisitQuery query);
 
     /**
      * 通过访问ID查询网站访问日志

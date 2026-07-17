@@ -1,6 +1,7 @@
 package com.hmmp.web.controller.publisher;
 
 import java.util.List;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,19 +12,26 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.hmmp.common.annotation.Log;
 import com.hmmp.common.core.controller.BaseController;
 import com.hmmp.common.core.domain.AjaxResult;
 import com.hmmp.common.core.page.TableDataInfo;
+import com.hmmp.common.enums.BusinessType;
+import com.hmmp.common.utils.poi.ExcelUtil;
+import com.hmmp.system.domain.publisher.PublisherBoundPost;
 import com.hmmp.system.domain.publisher.PublisherInventory;
 import com.hmmp.system.domain.publisher.PublisherInvoice;
 import com.hmmp.system.domain.publisher.PublisherOrder;
 import com.hmmp.system.domain.publisher.PublisherPost;
 import com.hmmp.system.domain.publisher.PublisherPrice;
+import com.hmmp.system.domain.publisher.PublisherSamplePost;
+import com.hmmp.system.service.publisher.IPublisherBoundPostService;
 import com.hmmp.system.service.publisher.IPublisherInventoryService;
 import com.hmmp.system.service.publisher.IPublisherInvoiceService;
 import com.hmmp.system.service.publisher.IPublisherOrderService;
 import com.hmmp.system.service.publisher.IPublisherPostService;
 import com.hmmp.system.service.publisher.IPublisherPriceService;
+import com.hmmp.system.service.publisher.IPublisherSamplePostService;
 
 /**
  * 征订管理 Controller
@@ -48,6 +56,12 @@ public class PublisherOrderController extends BaseController {
 
     @Autowired
     private IPublisherPostService postService;
+
+    @Autowired
+    private IPublisherSamplePostService samplePostService;
+
+    @Autowired
+    private IPublisherBoundPostService boundPostService;
 
     // ========== 定价管理 ==========
 
@@ -205,5 +219,61 @@ public class PublisherOrderController extends BaseController {
     @PutMapping("/post/post")
     public AjaxResult postExecute(@RequestBody PublisherPost post) {
         return toAjax(postService.executePost(post));
+    }
+
+    // ========== 邮寄样刊登记 ==========
+
+    @PreAuthorize("@ss.hasPermi('publisher:post:sample')")
+    @GetMapping("/post/sample/list")
+    public TableDataInfo samplePostList(PublisherSamplePost samplePost) {
+        startPage();
+        List<PublisherSamplePost> list = samplePostService.selectSamplePostList(samplePost);
+        return getDataTable(list);
+    }
+
+    @PreAuthorize("@ss.hasPermi('publisher:post:sample')")
+    @PutMapping("/post/sample")
+    public AjaxResult samplePostSave(@RequestBody PublisherSamplePost samplePost) {
+        return toAjax(samplePostService.saveSamplePost(samplePost));
+    }
+
+    @PreAuthorize("@ss.hasPermi('publisher:post:sample')")
+    @Log(title = "邮寄样刊登记", businessType = BusinessType.EXPORT)
+    @PostMapping("/post/sample/export")
+    public void samplePostExport(HttpServletResponse response, PublisherSamplePost samplePost) {
+        List<PublisherSamplePost> list = samplePostService.selectSamplePostList(samplePost);
+        ExcelUtil<PublisherSamplePost> util = new ExcelUtil<PublisherSamplePost>(PublisherSamplePost.class);
+        util.exportExcel(response, list, "邮寄样刊登记");
+    }
+
+    // ========== 邮寄合订本 ==========
+
+    @PreAuthorize("@ss.hasPermi('publisher:post:bound')")
+    @GetMapping("/post/bound/list")
+    public TableDataInfo boundPostList(PublisherBoundPost boundPost) {
+        startPage();
+        List<PublisherBoundPost> list = boundPostService.selectBoundPostList(boundPost);
+        return getDataTable(list);
+    }
+
+    @PreAuthorize("@ss.hasPermi('publisher:post:bound')")
+    @PutMapping("/post/bound")
+    public AjaxResult boundPostSave(@RequestBody PublisherBoundPost boundPost) {
+        return toAjax(boundPostService.saveBoundPost(boundPost));
+    }
+
+    @PreAuthorize("@ss.hasPermi('publisher:post:bound')")
+    @PutMapping("/post/bound/clearInvalidAddress")
+    public AjaxResult boundPostClearInvalidAddress() {
+        return toAjax(boundPostService.clearInvalidAddresses());
+    }
+
+    @PreAuthorize("@ss.hasPermi('publisher:post:bound')")
+    @Log(title = "邮寄合订本", businessType = BusinessType.EXPORT)
+    @PostMapping("/post/bound/export")
+    public void boundPostExport(HttpServletResponse response, PublisherBoundPost boundPost) {
+        List<PublisherBoundPost> list = boundPostService.selectBoundPostList(boundPost);
+        ExcelUtil<PublisherBoundPost> util = new ExcelUtil<PublisherBoundPost>(PublisherBoundPost.class);
+        util.exportExcel(response, list, "邮寄合订本");
     }
 }

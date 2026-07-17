@@ -108,23 +108,22 @@ onMounted(() => {
 
 <template>
   <div class="p-4">
-    <a-form layout="inline" class="mb-4">
-      <a-form-item label="年份">
-        <a-input-number v-model:value="searchForm.year" placeholder="请输入年份" :min="2000" :max="2100" style="width: 140px" />
-      </a-form-item>
-      <a-form-item label="期数">
-        <a-input-number v-model:value="searchForm.period" placeholder="请输入期数" :min="1" style="width: 140px" />
-      </a-form-item>
-      <a-form-item>
-        <a-space>
-          <a-button type="primary" @click="handleSearch">查询</a-button>
-          <a-button @click="handleReset">重置</a-button>
-        </a-space>
-      </a-form-item>
-    </a-form>
-
-    <div class="mb-4">
+    <div class="mb-4 flex items-center justify-between">
       <a-button type="primary" @click="handleAdd">新增库存</a-button>
+      <a-form layout="inline">
+        <a-form-item label="年份">
+          <a-input-number v-model:value="searchForm.year" placeholder="请输入年份" :min="2000" :max="2100" style="width: 140px" />
+        </a-form-item>
+        <a-form-item label="期数">
+          <a-input-number v-model:value="searchForm.period" placeholder="请输入期数" :min="1" style="width: 140px" />
+        </a-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button type="primary" @click="handleSearch">查询</a-button>
+            <a-button @click="handleReset">重置</a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
     </div>
 
     <a-table

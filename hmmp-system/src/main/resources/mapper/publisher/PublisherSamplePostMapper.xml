@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherSamplePostMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherSamplePost" id="PublisherSamplePostResult">
+        <id     property="sampleId"              column="sample_id"               />
+        <result property="articleId"             column="article_id"              />
+        <result property="manuscriptId"          column="manuscript_id"           />
+        <result property="fileNo"                column="file_no"                 />
+        <result property="yearNo"                column="year_no"                 />
+        <result property="period"                column="period"                  />
+        <result property="submitAuthor"          column="submit_author"           />
+        <result property="firstAuthor"           column="first_author"            />
+        <result property="correspondingAuthor"   column="corresponding_author"    />
+        <result property="firstAuthorAddress"    column="first_author_address"    />
+        <result property="firstAuthorOrg"          column="first_author_org"        />
+        <result property="firstAuthorZip"          column="first_author_zip"        />
+        <result property="firstAuthorPhone"        column="first_author_phone"      />
+        <result property="correspondingAddress"  column="corresponding_address"   />
+        <result property="correspondingOrg"      column="corresponding_org"       />
+        <result property="correspondingZip"      column="corresponding_zip"       />
+        <result property="correspondingPhone"    column="corresponding_phone"     />
+        <result property="submitAuthorAddress"   column="submit_author_address"   />
+        <result property="submitAuthorOrg"       column="submit_author_org"       />
+        <result property="submitAuthorZip"       column="submit_author_zip"       />
+        <result property="submitAuthorPhone"     column="submit_author_phone"     />
+        <result property="payeeName"             column="payee_name"              />
+        <result property="payeeAddress"            column="payee_address"           />
+        <result property="payeeOrg"                column="payee_org"               />
+        <result property="payeeZip"                column="payee_zip"               />
+        <result property="payeePhone"              column="payee_phone"             />
+        <result property="sampleQty"             column="sample_qty"              />
+        <result property="journalCode"           column="journal_code"            />
+        <result property="meetingId"             column="meeting_id"              />
+        <result property="createBy"              column="create_by"               />
+        <result property="createTime"            column="create_time"             />
+        <result property="updateBy"              column="update_by"               />
+        <result property="updateTime"            column="update_time"             />
+        <result property="remark"                column="remark"                  />
+    </resultMap>
+
+    <sql id="selectPublisherSamplePostVo">
+        select sp.sample_id, a.article_id, a.manuscript_id, a.file_no, a.year_no, a.period, a.journal_code,
+               COALESCE(i.meeting_id, y.meeting_id) as meeting_id,
+               COALESCE(sp.payee_name, '') as payee_name,
+               COALESCE(sp.payee_address, '') as payee_address,
+               COALESCE(sp.payee_org, '') as payee_org,
+               COALESCE(sp.payee_zip, '') as payee_zip,
+               COALESCE(sp.payee_phone, '') as payee_phone,
+               COALESCE(sp.sample_qty, 1) as sample_qty,
+               sp.create_by, sp.create_time, sp.update_by, sp.update_time, sp.remark,
+               COALESCE(m.author_names, a.author_names, '') as submit_author,
+               SUBSTRING_INDEX(COALESCE(a.author_names, m.author_names, ''), ',', 1) as first_author,
+               COALESCE(m.corresponding_author, '') as corresponding_author,
+               fa.address as first_author_address,
+               fa.affiliation as first_author_org,
+               fa.zip_code as first_author_zip,
+               COALESCE(fa.mobile, fa.phone, '') as first_author_phone,
+               ca.address as corresponding_address,
+               ca.affiliation as corresponding_org,
+               ca.zip_code as corresponding_zip,
+               COALESCE(ca.mobile, ca.phone, '') as corresponding_phone,
+               sa.address as submit_author_address,
+               sa.affiliation as submit_author_org,
+               sa.zip_code as submit_author_zip,
+               COALESCE(sa.mobile, sa.phone, '') as submit_author_phone
+        from publisher_article a
+        left join publisher_sample_post sp on a.article_id = sp.article_id
+        left join editor_manuscript m on a.manuscript_id = m.manuscript_id
+        left join publisher_issue i on a.issue_id = i.issue_id
+        left join publisher_year y on i.year_id = y.year_id
+        left join (
+            select ema.manuscript_id, ea.address, ea.affiliation, ea.zip_code, ea.mobile, ea.phone
+            from editor_manuscript_author ema
+            inner join editor_author ea on ema.author_id = ea.author_id
+            where ema.author_sort = (
+                select min(ema2.author_sort) from editor_manuscript_author ema2 where ema2.manuscript_id = ema.manuscript_id
+            )
+        ) fa on a.manuscript_id = fa.manuscript_id
+        left join (
+            select ema.manuscript_id, ea.address, ea.affiliation, ea.zip_code, ea.mobile, ea.phone
+            from editor_manuscript_author ema
+            inner join editor_author ea on ema.author_id = ea.author_id
+            where ema.is_corresponding = '1'
+        ) ca on a.manuscript_id = ca.manuscript_id
+        left join (
+            select ema.manuscript_id, ea.address, ea.affiliation, ea.zip_code, ea.mobile, ea.phone
+            from editor_manuscript_author ema
+            inner join editor_author ea on ema.author_id = ea.author_id
+            where ema.author_id = (
+                select ema2.author_id from editor_manuscript_author ema2
+                where ema2.manuscript_id = ema.manuscript_id
+                order by ema2.author_sort asc limit 1
+            )
+        ) sa on a.manuscript_id = sa.manuscript_id
+    </sql>
+
+    <select id="selectSamplePostList" parameterType="com.hmmp.system.domain.publisher.PublisherSamplePost" resultMap="PublisherSamplePostResult">
+        <include refid="selectPublisherSamplePostVo"/>
+        <where>
+            a.status = '0'
+            <if test="articleId != null">AND a.article_id = #{articleId}</if>
+            <if test="fileNo != null and fileNo != ''">AND a.file_no like concat('%', #{fileNo}, '%')</if>
+            <if test="yearNo != null">AND a.year_no = #{yearNo}</if>
+            <if test="period != null">AND a.period = #{period}</if>
+            <if test="submitAuthor != null and submitAuthor != ''">AND COALESCE(m.author_names, a.author_names, '') like concat('%', #{submitAuthor}, '%')</if>
+            <if test="firstAuthor != null and firstAuthor != ''">AND SUBSTRING_INDEX(COALESCE(a.author_names, m.author_names, ''), ',', 1) like concat('%', #{firstAuthor}, '%')</if>
+            <if test="payeeName != null and payeeName != ''">AND sp.payee_name like concat('%', #{payeeName}, '%')</if>
+            <if test="payeeAddress != null and payeeAddress != ''">AND sp.payee_address like concat('%', #{payeeAddress}, '%')</if>
+            <if test="payeeOrg != null and payeeOrg != ''">AND sp.payee_org like concat('%', #{payeeOrg}, '%')</if>
+            <if test="payeeZip != null and payeeZip != ''">AND sp.payee_zip like concat('%', #{payeeZip}, '%')</if>
+            <if test="payeePhone != null and payeePhone != ''">AND sp.payee_phone like concat('%', #{payeePhone}, '%')</if>
+            <if test="sampleQty != null">AND sp.sample_qty = #{sampleQty}</if>
+            <if test="journalCode != null and journalCode != '' and journalCode != 'default'">AND a.journal_code = #{journalCode}</if>
+            <if test="meetingId != null">AND COALESCE(i.meeting_id, y.meeting_id) = #{meetingId}</if>
+            <if test="articleIds != null and articleIds.length > 0">
+                AND a.article_id in
+                <foreach collection="articleIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        order by a.year_no desc, a.period desc, a.file_no asc
+    </select>
+
+    <select id="selectSamplePostById" parameterType="Long" resultMap="PublisherSamplePostResult">
+        <include refid="selectPublisherSamplePostVo"/>
+        where sp.sample_id = #{sampleId}
+    </select>
+
+    <select id="selectSamplePostByArticleId" parameterType="Long" resultMap="PublisherSamplePostResult">
+        <include refid="selectPublisherSamplePostVo"/>
+        where a.article_id = #{articleId}
+    </select>
+
+    <insert id="insertSamplePost" parameterType="com.hmmp.system.domain.publisher.PublisherSamplePost" useGeneratedKeys="true" keyProperty="sampleId">
+        insert into publisher_sample_post (
+            article_id, payee_name, payee_address, payee_org, payee_zip, payee_phone, sample_qty,
+            create_by, create_time, update_by, update_time, remark
+        ) values (
+            #{articleId}, #{payeeName}, #{payeeAddress}, #{payeeOrg}, #{payeeZip}, #{payeePhone}, #{sampleQty},
+            #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark}
+        )
+    </insert>
+
+    <update id="updateSamplePost" parameterType="com.hmmp.system.domain.publisher.PublisherSamplePost">
+        update publisher_sample_post
+        <set>
+            <if test="payeeName != null">payee_name = #{payeeName},</if>
+            <if test="payeeAddress != null">payee_address = #{payeeAddress},</if>
+            <if test="payeeOrg != null">payee_org = #{payeeOrg},</if>
+            <if test="payeeZip != null">payee_zip = #{payeeZip},</if>
+            <if test="payeePhone != null">payee_phone = #{payeePhone},</if>
+            <if test="sampleQty != null">sample_qty = #{sampleQty},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where sample_id = #{sampleId}
+    </update>
+
+</mapper>

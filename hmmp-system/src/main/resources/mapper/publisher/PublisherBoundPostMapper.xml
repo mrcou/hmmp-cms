@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherBoundPostMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherBoundPost" id="PublisherBoundPostResult">
+        <id     property="boundId"          column="bound_id"           />
+        <result property="orderId"          column="order_id"           />
+        <result property="orderNo"          column="order_no"           />
+        <result property="journalCode"      column="journal_code"       />
+        <result property="category"         column="category"           />
+        <result property="unitType"         column="unit_type"          />
+        <result property="distributeType"   column="distribute_type"    />
+        <result property="sendMethodName"   column="send_method_name"   />
+        <result property="yearId"           column="year_id"            />
+        <result property="receiveUser"      column="receive_user"       />
+        <result property="receiveUnit"      column="receive_unit"       />
+        <result property="receiveAddress"   column="receive_address"    />
+        <result property="receivePostcode"  column="receive_postcode"   />
+        <result property="orderTime"        column="order_time"         />
+        <result property="orderBookNum"     column="order_book_num"     />
+        <result property="sendBookTime"     column="send_book_time"     />
+        <result property="sendUser"         column="send_user"          />
+        <result property="rmbOrderCost"     column="rmb_order_cost"     />
+        <result property="canPost"          column="can_post"           />
+        <result property="meetingId"        column="meeting_id"         />
+        <result property="createBy"         column="create_by"          />
+        <result property="createTime"       column="create_time"        />
+        <result property="updateBy"         column="update_by"          />
+        <result property="updateTime"       column="update_time"        />
+        <result property="remark"           column="remark"             />
+    </resultMap>
+
+    <sql id="selectPublisherBoundPostVo">
+        select bp.bound_id,
+               o.order_id,
+               o.order_no,
+               COALESCE(o.journal_code, '') as journal_code,
+               COALESCE(o.category, '') as category,
+               COALESCE(o.unit_type, '') as unit_type,
+               COALESCE(o.distribute_type, '') as distribute_type,
+               COALESCE(o.send_method, '') as send_method_name,
+               COALESCE(oi.year, YEAR(o.create_time)) as year_id,
+               COALESCE(bp.receive_user, o.shipping_name, s.real_name, '') as receive_user,
+               COALESCE(bp.receive_unit, s.company, '') as receive_unit,
+               COALESCE(bp.receive_address, o.shipping_address, s.address, '') as receive_address,
+               COALESCE(bp.receive_postcode, o.shipping_zip_code, s.zip_code, '') as receive_postcode,
+               o.create_time as order_time,
+               COALESCE(o.order_book_num, oi.qty, 1) as order_book_num,
+               bp.send_book_time,
+               COALESCE(bp.send_user, '') as send_user,
+               o.total_amount as rmb_order_cost,
+               COALESCE(bp.can_post, '1') as can_post,
+               o.meeting_id,
+               bp.create_by, bp.create_time, bp.update_by, bp.update_time, bp.remark
+        from publisher_order o
+        left join publisher_bound_post bp on o.order_id = bp.order_id
+        left join publisher_subscriber s on o.subscriber_id = s.subscriber_id
+        left join (
+            select order_id, min(year) as year, sum(qty) as qty
+            from publisher_order_item
+            group by order_id
+        ) oi on o.order_id = oi.order_id
+    </sql>
+
+    <select id="selectBoundPostList" parameterType="com.hmmp.system.domain.publisher.PublisherBoundPost" resultMap="PublisherBoundPostResult">
+        <include refid="selectPublisherBoundPostVo"/>
+        <where>
+            (o.order_type = '1' or o.order_type = 'bound')
+            <if test="orderId != null">AND o.order_id = #{orderId}</if>
+            <if test="orderNo != null and orderNo != ''">AND o.order_no like concat('%', #{orderNo}, '%')</if>
+            <if test="journalCode != null and journalCode != '' and journalCode != 'default'">AND o.journal_code = #{journalCode}</if>
+            <if test="category != null and category != ''">AND o.category like concat('%', #{category}, '%')</if>
+            <if test="unitType != null and unitType != ''">AND o.unit_type like concat('%', #{unitType}, '%')</if>
+            <if test="distributeType != null and distributeType != ''">AND o.distribute_type like concat('%', #{distributeType}, '%')</if>
+            <if test="sendMethodName != null and sendMethodName != ''">AND o.send_method like concat('%', #{sendMethodName}, '%')</if>
+            <if test="yearId != null">AND COALESCE(oi.year, YEAR(o.create_time)) = #{yearId}</if>
+            <if test="receiveUser != null and receiveUser != ''">AND COALESCE(bp.receive_user, o.shipping_name, s.real_name, '') like concat('%', #{receiveUser}, '%')</if>
+            <if test="receiveUnit != null and receiveUnit != ''">AND COALESCE(bp.receive_unit, s.company, '') like concat('%', #{receiveUnit}, '%')</if>
+            <if test="receiveAddress != null and receiveAddress != ''">AND COALESCE(bp.receive_address, o.shipping_address, s.address, '') like concat('%', #{receiveAddress}, '%')</if>
+            <if test="receivePostcode != null and receivePostcode != ''">AND COALESCE(bp.receive_postcode, o.shipping_zip_code, s.zip_code, '') like concat('%', #{receivePostcode}, '%')</if>
+            <if test="orderBookNum != null">AND COALESCE(o.order_book_num, oi.qty, 1) = #{orderBookNum}</if>
+            <if test="sendUser != null and sendUser != ''">AND bp.send_user like concat('%', #{sendUser}, '%')</if>
+            <if test="meetingId != null">AND o.meeting_id = #{meetingId}</if>
+            <if test="mailedOnly != null and mailedOnly">AND bp.send_book_time is not null</if>
+            <if test="pendingOnly != null and pendingOnly">AND bp.send_book_time is null</if>
+            <if test="orderIds != null and orderIds.length > 0">
+                AND o.order_id in
+                <foreach collection="orderIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        order by o.create_time desc, o.order_id desc
+    </select>
+
+    <select id="selectBoundPostById" parameterType="Long" resultMap="PublisherBoundPostResult">
+        <include refid="selectPublisherBoundPostVo"/>
+        where bp.bound_id = #{boundId}
+    </select>
+
+    <select id="selectBoundPostByOrderId" parameterType="Long" resultMap="PublisherBoundPostResult">
+        <include refid="selectPublisherBoundPostVo"/>
+        where o.order_id = #{orderId}
+    </select>
+
+    <insert id="insertBoundPost" parameterType="com.hmmp.system.domain.publisher.PublisherBoundPost" useGeneratedKeys="true" keyProperty="boundId">
+        insert into publisher_bound_post (
+            order_id, receive_user, receive_unit, receive_address, receive_postcode, send_book_time, send_user, can_post,
+            create_by, create_time, update_by, update_time, remark
+        ) values (
+            #{orderId}, #{receiveUser}, #{receiveUnit}, #{receiveAddress}, #{receivePostcode}, #{sendBookTime}, #{sendUser}, #{canPost},
+            #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark}
+        )
+    </insert>
+
+    <update id="updateBoundPost" parameterType="com.hmmp.system.domain.publisher.PublisherBoundPost">
+        update publisher_bound_post
+        <set>
+            <if test="receiveUser != null">receive_user = #{receiveUser},</if>
+            <if test="receiveUnit != null">receive_unit = #{receiveUnit},</if>
+            <if test="receiveAddress != null">receive_address = #{receiveAddress},</if>
+            <if test="receivePostcode != null">receive_postcode = #{receivePostcode},</if>
+            <if test="sendBookTime != null">send_book_time = #{sendBookTime},</if>
+            <if test="sendUser != null">send_user = #{sendUser},</if>
+            <if test="canPost != null">can_post = #{canPost},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where bound_id = #{boundId}
+    </update>
+
+    <update id="clearInvalidAddresses">
+        update publisher_bound_post
+        set receive_address = '', update_time = sysdate()
+        where can_post = '0'
+          and receive_address is not null
+          and receive_address &lt;&gt; ''
+    </update>
+
+</mapper>

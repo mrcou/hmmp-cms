@@ -99,29 +99,28 @@ onMounted(() => {
 
 <template>
   <div class="p-4">
-    <a-form layout="inline" class="mb-4">
-      <a-form-item label="用户名">
-        <a-input v-model:value="searchForm.userName" placeholder="请输入用户名" style="width: 160px" />
-      </a-form-item>
-      <a-form-item label="邮箱">
-        <a-input v-model:value="searchForm.email" placeholder="请输入邮箱" style="width: 160px" />
-      </a-form-item>
-      <a-form-item label="状态">
-        <a-select v-model:value="searchForm.status" placeholder="请选择" allow-clear style="width: 120px">
-          <a-select-option value="0">启用</a-select-option>
-          <a-select-option value="1">停用</a-select-option>
-        </a-select>
-      </a-form-item>
-      <a-form-item>
-        <a-space>
-          <a-button type="primary" @click="handleSearch">查询</a-button>
-          <a-button @click="handleReset">重置</a-button>
-        </a-space>
-      </a-form-item>
-    </a-form>
-
-    <div class="mb-4">
+    <div class="mb-4 flex items-center justify-between">
       <a-button type="primary" @click="handleAdd">新增订阅用户</a-button>
+      <a-form layout="inline">
+        <a-form-item label="用户名">
+          <a-input v-model:value="searchForm.userName" placeholder="请输入用户名" style="width: 160px" />
+        </a-form-item>
+        <a-form-item label="邮箱">
+          <a-input v-model:value="searchForm.email" placeholder="请输入邮箱" style="width: 160px" />
+        </a-form-item>
+        <a-form-item label="状态">
+          <a-select v-model:value="searchForm.status" placeholder="请选择" allow-clear style="width: 120px">
+            <a-select-option value="0">启用</a-select-option>
+            <a-select-option value="1">停用</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item>
+          <a-space>
+            <a-button type="primary" @click="handleSearch">查询</a-button>
+            <a-button @click="handleReset">重置</a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
     </div>
 
     <a-table

@@ -32,6 +32,11 @@ public class PublisherCommentServiceImpl implements IPublisherCommentService {
 
     @Override
     public int auditComment(PublisherComment comment) {
+        if (comment.getCommentId() == null
+            && (comment.getCommentIds() == null || comment.getCommentIds().length == 0))
+        {
+            return 0;
+        }
         comment.setAuditBy(SecurityUtils.getUsername());
         comment.setAuditTime(new Date());
         return commentMapper.auditComment(comment);
