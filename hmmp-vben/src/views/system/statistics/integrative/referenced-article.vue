@@ -1,14 +1,12 @@
 <script lang="ts" setup>
 /**
- * 被引文章查询 —— 按杂志检索已刊发文章的被引/自引/他引
- * 布局：标题 + 兄弟统计页导航 + 杂志编号筛选 + 表格（参考图字段）
+ * 被引文章查询 —— 按期刊检索已刊发文章的被引/自引/他引
+ * 布局：标题 + 兄弟统计页导航 + 期刊名称筛选 + 表格（参考图字段）
  */
 import type { StatisticsApi } from '#/api/biz/statistics';
 
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-
-import { preferences } from '@vben/preferences';
 
 import { message } from 'antdv-next';
 
@@ -16,6 +14,10 @@ import {
   exportReferencedArticleList,
   getReferencedArticleList,
 } from '#/api/biz/statistics';
+import {
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 defineOptions({ name: 'StatisticsIntegrativeReferencedArticle' });
 
@@ -41,14 +43,9 @@ function onNav(path: string) {
   if (path !== route.path) router.push(path);
 }
 
-const magazineOptions = computed(() => [
-  {
-    value: 'default',
-    label: preferences.app.name || 'HMMP管理系统',
-  },
-]);
+const { magazineOptions } = useJournalMagazine({ optionValue: 'default' });
 
-/** 筛选行（对齐参考图：杂志编号 + 检索） */
+/** 筛选行（对齐参考图：期刊名称 + 检索） */
 const filters = reactive({
   magazineId: 'default',
 });
@@ -197,9 +194,9 @@ onMounted(() => {
     </div>
 
     <a-card :bordered="false" class="shadow-sm">
-      <!-- 筛选行：杂志编号 + 检索（对齐参考图） -->
+      <!-- 筛选行：期刊名称 + 检索（对齐参考图） -->
       <div class="mb-3 flex flex-wrap items-center gap-2">
-        <span class="filter-label">杂志编号</span>
+        <span class="filter-label">{{ JOURNAL_NAME_LABEL }}</span>
         <a-select
           v-model:value="filters.magazineId"
           :options="magazineOptions"

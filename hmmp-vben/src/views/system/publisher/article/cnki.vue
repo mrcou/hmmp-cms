@@ -6,11 +6,14 @@ import type { PublisherApi } from '#/api/biz/publisher';
 
 import { computed, onMounted, reactive, ref } from 'vue';
 
-import { preferences } from '@vben/preferences';
-
 import { message, Modal } from 'antdv-next';
 
 import * as publisherApi from '#/api/biz/publisher';
+import {
+  JOURNAL_CODE_LABEL,
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 defineOptions({ name: 'PublisherIssueCnki' });
 
@@ -46,26 +49,19 @@ const filters = reactive({
   searchValue: '',
 });
 
+const { magazineOptions } = useJournalMagazine();
+
 const searchFieldOptions = [
   { value: 'cnkiTitle', label: '知网标题' },
   { value: 'title', label: '本系统标题' },
-  { value: 'journalCode', label: '杂志编号' },
+  { value: 'journalCode', label: JOURNAL_CODE_LABEL },
   { value: 'fileNo', label: '稿件编号' },
   { value: 'cnkiMatchStatus', label: '匹配状态' },
 ];
 
-const magazineOptions = computed(() => [
-  {
-    value: 'ddhl',
-    label: preferences.app.name || '默认杂志',
-  },
-]);
-
-/** antdv-next Select 不会转发 a-select-option 子节点，必须用 options */
-
 const allColumns = [
   { key: 'action', title: '操作', dataIndex: 'action', width: 90, fixed: 'left' as const },
-  { key: 'journalCode', title: '杂志编号', dataIndex: 'journalCode', width: 110 },
+  { key: 'journalCode', title: JOURNAL_CODE_LABEL, dataIndex: 'journalCode', width: 110 },
   { key: 'cnkiTitle', title: '知网标题', dataIndex: 'cnkiTitle', ellipsis: true, width: 220 },
   { key: 'title', title: '本系统标题', dataIndex: 'title', ellipsis: true, width: 220 },
   { key: 'cnkiCitedCount', title: '被引次数', dataIndex: 'cnkiCitedCount', width: 100 },
@@ -242,7 +238,7 @@ onMounted(() => {
     <div class="mb-4 flex items-center justify-between">
       <div class="flex items-center justify-end">
         <a-form layout="inline">
-          <a-form-item label="杂志名称">
+          <a-form-item :label="JOURNAL_NAME_LABEL">
             <a-select
               v-model:value="filters.journalCode"
               allow-clear
@@ -333,7 +329,7 @@ onMounted(() => {
       @ok="handleSubmit"
     >
       <a-form layout="vertical" class="pt-2">
-        <a-form-item label="杂志编号">
+        <a-form-item :label="JOURNAL_CODE_LABEL">
           <a-input :value="formData.journalCode" disabled />
         </a-form-item>
         <a-form-item label="本系统标题">

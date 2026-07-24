@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /**
- * 年份管理 —— 对齐旧系统列表：杂志/会议筛选 + 快捷检索 + 表格 + 删除/添加/显示设置
+ * 年份管理 —— 对齐旧系统列表：杂志筛选 + 快捷检索 + 表格 + 删除/添加/显示设置
  */
 import type { PublisherApi } from '#/api/biz/publisher';
 
@@ -8,12 +8,15 @@ import { computed, onMounted, reactive, ref } from 'vue';
 
 import { VbenTableAction } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
-import { preferences } from '@vben/preferences';
-
 import { message, Modal, Upload } from 'antdv-next';
 
 import * as meetingApi from '#/api/biz/meeting';
 import * as publisherApi from '#/api/biz/publisher';
+import {
+  JOURNAL_CODE_LABEL,
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 defineOptions({ name: 'PublisherIssueYear' });
 
@@ -37,20 +40,23 @@ const pagination = reactive({
 /** 顶栏筛选 */
 const filters = reactive({
   journalCode: undefined as string | undefined,
-  meetingId: undefined as number | undefined,
   searchField: 'journalCode' as
     | 'journalCode'
     | 'year'
+    | 'period'
     | 'volume'
     | 'nameCn'
     | 'nameEn',
   searchValue: '',
 });
 
+const { magazineOptions } = useJournalMagazine();
+
 const searchFieldOptions = [
-  { value: 'journalCode', label: '杂志编号' },
+  { value: 'journalCode', label: JOURNAL_CODE_LABEL },
   { value: 'year', label: '年份' },
   { value: 'volume', label: '卷号' },
+  { value: 'period', label: '期数' },
   { value: 'nameCn', label: '中文名' },
   { value: 'nameEn', label: '英文名' },
 ];
@@ -59,14 +65,6 @@ const statusOptions = [
   { value: '0', label: '正常' },
   { value: '1', label: '停用' },
 ];
-
-/** antdv-next Select 不会转发 a-select-option 子节点，必须用 options */
-const magazineOptions = computed(() => [
-  {
-    value: 'ddhl',
-    label: preferences.app.name || '默认杂志',
-  },
-]);
 
 const meetingOptions = ref<{ label: string; value: number }[]>([]);
 
@@ -88,14 +86,14 @@ async function loadMeetingOptions() {
 }
 
 const allColumns = [
-  { key: 'journalCode', title: '杂志编号', dataIndex: 'journalCode', width: 120 },
+  { key: 'journalCode', title: JOURNAL_CODE_LABEL, dataIndex: 'journalCode', width: 120 },
   { key: 'year', title: '年份', dataIndex: 'year', width: 90 },
   { key: 'volume', title: '卷号', dataIndex: 'volume', width: 90 },
+  { key: 'period', title: '期数', dataIndex: 'period', width: 90 },
   { key: 'nameCn', title: '中文名', dataIndex: 'nameCn', width: 140 },
   { key: 'nameEn', title: '英文名', dataIndex: 'nameEn', width: 140 },
   { key: 'catalogFile', title: '目录文件', dataIndex: 'catalogFile', ellipsis: true, width: 180 },
   { key: 'isFree', title: '免费访问', dataIndex: 'isFree', width: 100 },
-  { key: 'meetingId', title: '会议', dataIndex: 'meetingId', ellipsis: true, width: 160 },
   { key: 'status', title: '状态', dataIndex: 'status', width: 90 },
   { key: 'remark', title: '备注', dataIndex: 'remark', ellipsis: true, width: 180 },
   { key: 'action', title: '操作', dataIndex: 'action', width: 90, fixed: 'right' as const },
@@ -123,9 +121,6 @@ function buildSearchParams() {
   };
   if (filters.journalCode) {
     params.journalCode = filters.journalCode;
-  }
-  if (filters.meetingId != null) {
-    params.meetingId = filters.meetingId;
   }
   const keyword = filters.searchValue.trim();
   if (keyword) {
@@ -164,7 +159,6 @@ function onSearch() {
 
 function onReset() {
   filters.journalCode = undefined;
-  filters.meetingId = undefined;
   filters.searchField = 'journalCode';
   filters.searchValue = '';
   pagination.current = 1;
@@ -185,6 +179,7 @@ const isEdit = ref(false);
 const formData = reactive<PublisherApi.Year>({
   journalCode: 'ddhl',
   year: currentYear,
+  period: '',
   volume: 1,
   nameCn: '',
   nameEn: '',
@@ -202,12 +197,13 @@ function resetForm() {
   formData.yearId = undefined;
   formData.journalCode = filters.journalCode || 'ddhl';
   formData.year = currentYear;
+  formData.period = '';
   formData.volume = 1;
   formData.nameCn = `${formData.year}年`;
   formData.nameEn = '';
   formData.catalogFile = '';
   formData.isFree = '0';
-  formData.meetingId = filters.meetingId;
+  formData.meetingId = undefined;
   formData.status = '0';
   formData.remark = '';
   uploadFileLists.catalogFile = [];
@@ -228,6 +224,7 @@ function handleEdit(record: PublisherApi.Year) {
     yearId: record.yearId,
     journalCode: record.journalCode || 'ddhl',
     year: record.year,
+    period: String(record.period ?? ''),
     volume: record.volume,
     nameCn: record.nameCn || '',
     nameEn: record.nameEn || '',
@@ -276,16 +273,6 @@ async function uploadFieldFile(field: UploadField, file: File) {
   }
 }
 
-function getMeetingLabel(meetingId?: number) {
-  if (meetingId == null) {
-    return '';
-  }
-  return (
-    meetingOptions.value.find((item) => item.value === meetingId)?.label ||
-    `会议#${meetingId}`
-  );
-}
-
 function statusLabel(status?: string) {
   return statusOptions.find((item) => item.value === status)?.label || '正常';
 }
@@ -293,7 +280,7 @@ function statusLabel(status?: string) {
 function buildPayload(): PublisherApi.Year | null {
   const journalCode = formData.journalCode?.trim();
   if (!journalCode) {
-    message.warning('请选择杂志名称');
+    message.warning(`请选择${JOURNAL_NAME_LABEL}`);
     return null;
   }
   if (formData.year == null) {
@@ -304,6 +291,7 @@ function buildPayload(): PublisherApi.Year | null {
     ...formData,
     journalCode,
     year: Number(formData.year),
+    period: formData.period?.trim() || undefined,
     volume: formData.volume == null ? undefined : Number(formData.volume),
     nameCn: formData.nameCn?.trim() || `${formData.year}年`,
     nameEn: formData.nameEn?.trim() || '',
@@ -364,22 +352,13 @@ onMounted(() => {
     <div class="mb-4 flex items-center justify-between">
       <a-form layout="inline" class="flex w-full items-center justify-between">
         <div class="flex items-center">
-          <a-form-item label="杂志名称">
+          <a-form-item :label="JOURNAL_NAME_LABEL">
             <a-select
               v-model:value="filters.journalCode"
               allow-clear
               placeholder="请选择"
               style="width: 160px"
               :options="magazineOptions"
-            />
-          </a-form-item>
-          <a-form-item label="会议">
-            <a-select
-              v-model:value="filters.meetingId"
-              allow-clear
-              placeholder="请选择"
-              style="width: 160px"
-              :options="meetingOptions"
             />
           </a-form-item>
           <a-form-item label="检索项">
@@ -437,11 +416,11 @@ onMounted(() => {
         <template v-else-if="column.key === 'volume'">
           {{ record.volume ?? '' }}
         </template>
+        <template v-else-if="column.key === 'period'">
+          {{ record.period ?? '' }}
+        </template>
         <template v-else-if="column.key === 'catalogFile'">
           {{ record.catalogFile || '' }}
-        </template>
-        <template v-else-if="column.key === 'meetingId'">
-          {{ getMeetingLabel(record.meetingId) }}
         </template>
         <template v-else-if="column.key === 'status'">
           {{ statusLabel(record.status) }}
@@ -477,7 +456,7 @@ onMounted(() => {
       <a-form layout="vertical" class="year-form">
         <a-divider orientation="left">基础信息</a-divider>
         <div class="form-grid">
-          <a-form-item label="杂志名称" required>
+          <a-form-item :label="JOURNAL_NAME_LABEL" required>
             <a-select
               v-model:value="formData.journalCode"
               :options="magazineOptions"
@@ -500,6 +479,9 @@ onMounted(() => {
               :max="9999"
               style="width: 100%"
             />
+          </a-form-item>
+          <a-form-item label="期数">
+            <a-input v-model:value="formData.period" allow-clear />
           </a-form-item>
           <a-form-item label="会议">
             <a-select

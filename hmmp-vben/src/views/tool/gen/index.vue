@@ -71,7 +71,7 @@ function onImport() {
 }
 
 function onEdit(row: GenApi.GenTable) {
-  router.push({ path: '/tool/gen/edit', query: { tableId: row.tableId } });
+  router.push({ path: '/system/tool/gen/edit', query: { tableId: row.tableId } });
 }
 
 function onPreview(row: GenApi.GenTable) {

@@ -8,12 +8,16 @@ import { computed, onMounted, reactive, ref } from 'vue';
 
 import { VbenTableAction } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
-import { preferences } from '@vben/preferences';
 
 import { message, Upload } from 'antdv-next';
 
 import * as meetingApi from '#/api/biz/meeting';
 import * as publisherApi from '#/api/biz/publisher';
+import {
+  JOURNAL_CODE_LABEL,
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 defineOptions({ name: 'PublisherIssuePeriod' });
 
@@ -72,8 +76,10 @@ const filters = reactive({
   searchValue: '',
 });
 
+const { magazineOptions } = useJournalMagazine();
+
 const searchFieldOptions: { label: string; value: SearchField }[] = [
-  { value: 'journalCode', label: '杂志编号' },
+  { value: 'journalCode', label: JOURNAL_CODE_LABEL },
   { value: 'year', label: '年份' },
   { value: 'nameCn', label: '中文名' },
   { value: 'nameEn', label: '英文名' },
@@ -85,13 +91,6 @@ const yesNoOptions = [
   { value: '1', label: '是' },
 ];
 
-const magazineOptions = computed(() => [
-  {
-    value: 'ddhl',
-    label: preferences.app.name || '默认杂志',
-  },
-]);
-
 const meetingOptions = ref<{ label: string; value: number }[]>([]);
 const yearOptions = ref<
   { label: string; value: number; volume?: number; yearId?: number }[]
@@ -100,7 +99,7 @@ const columnList = ref<PublisherApi.Column[]>([]);
 const issueColumnRows = ref<IssueColumnRow[]>([]);
 
 const allColumns: ColumnDef[] = [
-  { title: '杂志编号', dataIndex: 'journalCode', key: 'journalCode', width: 110 },
+  { title: JOURNAL_CODE_LABEL, dataIndex: 'journalCode', key: 'journalCode', width: 110 },
   { title: '年份', dataIndex: 'year', key: 'year', width: 80 },
   { title: '卷号', dataIndex: 'volume', key: 'volume', width: 80 },
   { title: '刊期', dataIndex: 'period', key: 'period', width: 90 },
@@ -433,7 +432,7 @@ function buildPayload(): PublisherApi.Issue | null {
   const journalCode = formData.journalCode?.trim();
   const period = String(formData.period ?? '').trim();
   if (!journalCode) {
-    message.warning('请选择杂志名称');
+    message.warning(`请选择${JOURNAL_NAME_LABEL}`);
     return null;
   }
   if (!formData.year) {
@@ -563,7 +562,7 @@ onMounted(() => {
     <div class="mb-4 flex items-center justify-between">
       <div class="flex items-center justify-end">
         <a-form layout="inline">
-          <a-form-item label="杂志名称">
+          <a-form-item :label="JOURNAL_NAME_LABEL">
             <a-select
               v-model:value="filters.journalCode"
               allow-clear
@@ -692,7 +691,7 @@ onMounted(() => {
       <a-form layout="vertical" class="issue-form">
         <a-divider orientation="left">基础信息</a-divider>
         <div class="form-grid">
-          <a-form-item label="杂志名称" required>
+          <a-form-item :label="JOURNAL_NAME_LABEL" required>
             <a-select
               v-model:value="formData.journalCode"
               :options="magazineOptions"

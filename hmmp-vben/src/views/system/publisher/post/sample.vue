@@ -8,12 +8,15 @@ import { computed, onMounted, reactive, ref } from 'vue';
 
 import { VbenTableAction } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
-import { preferences } from '@vben/preferences';
 
 import { message } from 'antdv-next';
 
 import * as meetingApi from '#/api/biz/meeting';
 import * as publisherApi from '#/api/biz/publisher';
+import {
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 defineOptions({ name: 'PublisherOrderSample' });
 
@@ -64,12 +67,7 @@ const searchFieldOptions = [
   { value: 'payeePhone', label: '联系电话' },
 ];
 
-const magazineOptions = computed(() => [
-  {
-    value: 'ddhl',
-    label: preferences.app.name || '默认杂志',
-  },
-]);
+const { magazineOptions } = useJournalMagazine();
 
 const meetingOptions = ref<{ label: string; value: number }[]>([]);
 
@@ -502,11 +500,11 @@ onMounted(() => {
       <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center justify-end">
           <a-form layout="inline">
-            <a-form-item label="杂志名称">
+            <a-form-item :label="JOURNAL_NAME_LABEL">
               <a-select
                 v-model:value="filters.journalCode"
                 allow-clear
-                placeholder="--杂志名称--"
+                :placeholder="`--${JOURNAL_NAME_LABEL}--`"
                 style="width: 160px"
                 :options="magazineOptions"
               />

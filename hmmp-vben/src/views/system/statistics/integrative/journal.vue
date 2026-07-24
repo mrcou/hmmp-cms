@@ -8,11 +8,13 @@ import type { StatisticsApi } from '#/api/biz/statistics';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { preferences } from '@vben/preferences';
-
 import { message } from 'antdv-next';
 
 import { getJournalTotal } from '#/api/biz/statistics';
+import {
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 defineOptions({ name: 'StatisticsIntegrativeJournal' });
 
@@ -39,12 +41,7 @@ function onNav(path: string) {
 
 const currentYear = String(new Date().getFullYear());
 
-const magazineOptions = computed(() => [
-  {
-    value: 'default',
-    label: preferences.app.name || 'HMMP管理系统',
-  },
-]);
+const { magazineOptions } = useJournalMagazine({ optionValue: 'default' });
 
 const filters = reactive({
   magazineId: 'default',
@@ -286,7 +283,7 @@ onMounted(() => {
       <!-- 筛选行 -->
       <div class="filter-bar mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-b pb-4">
         <div class="flex items-center gap-2">
-          <span class="filter-label">杂志编号</span>
+          <span class="filter-label">{{ JOURNAL_NAME_LABEL }}</span>
           <a-select
             v-model:value="filters.magazineId"
             style="width: 160px"

@@ -145,11 +145,11 @@ async function onSave() {
   const values = await formApi.getValues<GenApi.GenTable>();
   await updateGenTable({ ...values, tableId, columns: columns.value });
   message.success('保存成功');
-  router.push({ path: '/tool/gen' });
+  router.push({ path: '/system/tool/gen' });
 }
 
 function onCancel() {
-  router.push({ path: '/tool/gen' });
+  router.push({ path: '/system/tool/gen' });
 }
 
 const tableColumns = [

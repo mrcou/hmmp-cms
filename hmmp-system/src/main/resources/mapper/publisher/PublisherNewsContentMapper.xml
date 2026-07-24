@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherNewsContentMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherNewsContent" id="PublisherNewsContentResult">
+        <id property="contentId" column="content_id" />
+        <result property="columnId" column="column_id" />
+        <result property="columnName" column="column_name" />
+        <result property="title" column="title" />
+        <result property="summary" column="summary" />
+        <result property="content" column="content" />
+        <result property="status" column="status" />
+        <result property="images" column="images" />
+        <result property="videos" column="videos" />
+        <result property="attachments" column="attachments" />
+        <result property="source" column="source" />
+        <result property="author" column="author" />
+        <result property="editor" column="editor" />
+        <result property="sourceUrl" column="source_url" />
+        <result property="publishTime" column="publish_time" />
+        <result property="sortOrder" column="sort_order" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="selectPublisherNewsContentVo">
+        select n.content_id, n.column_id, c.column_name, n.title, n.summary,
+               n.content, n.status, n.images, n.videos, n.attachments, n.source,
+               n.author, n.editor, n.source_url, n.publish_time, n.sort_order,
+               n.create_by, n.create_time, n.update_by, n.update_time
+        from publisher_news_content n
+        left join publisher_news_column c on c.column_id = n.column_id
+    </sql>
+
+    <select id="selectNewsContentList" parameterType="com.hmmp.system.domain.publisher.PublisherNewsContent" resultMap="PublisherNewsContentResult">
+        <include refid="selectPublisherNewsContentVo"/>
+        <where>
+            <if test="columnId != null">and n.column_id = #{columnId}</if>
+            <if test="title != null and title != ''">
+                and n.title like concat('%', #{title}, '%')
+            </if>
+            <if test="status != null and status != ''">and n.status = #{status}</if>
+        </where>
+        order by n.sort_order desc, n.content_id desc
+    </select>
+
+    <select id="selectNewsContentById" parameterType="Long" resultMap="PublisherNewsContentResult">
+        <include refid="selectPublisherNewsContentVo"/>
+        where n.content_id = #{contentId}
+    </select>
+
+    <insert id="insertNewsContent" parameterType="com.hmmp.system.domain.publisher.PublisherNewsContent" useGeneratedKeys="true" keyProperty="contentId">
+        insert into publisher_news_content
+        (column_id, title, summary, content, status, images, videos, attachments,
+         source, author, editor, source_url, publish_time, sort_order, create_by, create_time)
+        values
+        (#{columnId}, #{title}, #{summary}, #{content}, #{status}, #{images}, #{videos},
+         #{attachments}, #{source}, #{author}, #{editor}, #{sourceUrl}, #{publishTime},
+         #{sortOrder}, #{createBy}, sysdate())
+    </insert>
+
+    <update id="updateNewsContent" parameterType="com.hmmp.system.domain.publisher.PublisherNewsContent">
+        update publisher_news_content
+        <set>
+            <if test="columnId != null">column_id = #{columnId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="images != null">images = #{images},</if>
+            <if test="videos != null">videos = #{videos},</if>
+            <if test="attachments != null">attachments = #{attachments},</if>
+            <if test="source != null">source = #{source},</if>
+            <if test="author != null">author = #{author},</if>
+            <if test="editor != null">editor = #{editor},</if>
+            <if test="sourceUrl != null">source_url = #{sourceUrl},</if>
+            publish_time = #{publishTime},
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            update_by = #{updateBy},
+            update_time = sysdate()
+        </set>
+        where content_id = #{contentId}
+    </update>
+
+    <update id="updateNewsContentSort" parameterType="com.hmmp.system.domain.publisher.PublisherNewsContent">
+        update publisher_news_content
+        set sort_order = #{sortOrder}, update_by = #{updateBy}, update_time = sysdate()
+        where content_id = #{contentId}
+    </update>
+
+    <delete id="deleteNewsContentByIds" parameterType="Long">
+        delete from publisher_news_content where content_id in
+        <foreach collection="array" item="contentId" open="(" separator="," close=")">
+            #{contentId}
+        </foreach>
+    </delete>
+</mapper>

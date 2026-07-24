@@ -119,7 +119,7 @@ async function handleMakeAll() {
 }
 
 function viewAll() {
-  router.push('/system/notice');
+  router.push('/system/site-config/notice');
 }
 
 function handleNotificationOpenChange(open: boolean) {

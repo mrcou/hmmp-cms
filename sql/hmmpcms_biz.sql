@@ -306,6 +306,7 @@ CREATE TABLE `publisher_year` (
   `year_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '年份ID',
   `journal_code` varchar(50) DEFAULT '' COMMENT '杂志编号',
   `year` int(4) NOT NULL COMMENT '年份',
+  `period` varchar(50) DEFAULT NULL COMMENT '期数',
   `volume` int(4) DEFAULT NULL COMMENT '卷号',
   `name_cn` varchar(100) DEFAULT '' COMMENT '中文名',
   `name_en` varchar(100) DEFAULT '' COMMENT '英文名',
@@ -1270,3 +1271,48 @@ CREATE TABLE `msg_sms` (
   KEY `idx_phone` (`phone`),
   KEY `idx_send_status` (`send_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='短信表';
+
+-- ----------------------------
+-- 发行中心：新闻管理
+-- ----------------------------
+DROP TABLE IF EXISTS `publisher_news_content`;
+DROP TABLE IF EXISTS `publisher_news_column`;
+CREATE TABLE `publisher_news_column` (
+  `column_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '栏目ID',
+  `column_name` varchar(100) NOT NULL COMMENT '栏目名称',
+  `sort_order` int(11) NOT NULL DEFAULT 0 COMMENT '排序号（升序）',
+  `create_by` varchar(64) DEFAULT '' COMMENT '创建者',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `update_by` varchar(64) DEFAULT '' COMMENT '更新者',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`column_id`),
+  UNIQUE KEY `uk_news_column_name` (`column_name`),
+  KEY `idx_news_column_sort` (`sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='新闻栏目表';
+
+CREATE TABLE `publisher_news_content` (
+  `content_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '内容ID',
+  `column_id` bigint(20) NOT NULL COMMENT '栏目ID',
+  `title` varchar(200) NOT NULL COMMENT '标题',
+  `summary` varchar(1000) DEFAULT '' COMMENT '摘要',
+  `content` longtext COMMENT '富文本正文',
+  `status` varchar(20) NOT NULL DEFAULT 'draft' COMMENT '状态(draft草稿 published已发布)',
+  `images` text COMMENT '图片地址，逗号分隔',
+  `videos` text COMMENT '视频地址，逗号分隔',
+  `attachments` text COMMENT '附件地址，逗号分隔',
+  `source` varchar(200) DEFAULT '' COMMENT '来源',
+  `author` varchar(100) DEFAULT '' COMMENT '作者',
+  `editor` varchar(100) DEFAULT '' COMMENT '编辑',
+  `source_url` varchar(500) DEFAULT '' COMMENT '来源链接',
+  `publish_time` datetime DEFAULT NULL COMMENT '发布时间',
+  `sort_order` int(11) NOT NULL DEFAULT 0 COMMENT '排序号（降序）',
+  `create_by` varchar(64) DEFAULT '' COMMENT '创建者',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `update_by` varchar(64) DEFAULT '' COMMENT '更新者',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`content_id`),
+  KEY `idx_news_content_column` (`column_id`),
+  KEY `idx_news_content_status` (`status`),
+  KEY `idx_news_content_sort` (`sort_order`, `content_id`),
+  KEY `idx_news_content_publish_time` (`publish_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='新闻内容表';

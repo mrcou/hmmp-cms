@@ -8,12 +8,16 @@ import { computed, onMounted, reactive, ref } from 'vue';
 
 import { VbenTableAction } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
-import { preferences } from '@vben/preferences';
 
 import { message, Modal } from 'antdv-next';
 
 import * as meetingApi from '#/api/biz/meeting';
 import * as publisherApi from '#/api/biz/publisher';
+import {
+  JOURNAL_CODE_LABEL,
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 defineOptions({ name: 'PublisherOrderBound' });
 
@@ -51,8 +55,10 @@ const filters = reactive({
   searchValue: '',
 });
 
+const { magazineOptions } = useJournalMagazine();
+
 const searchFieldOptions = [
-  { value: 'journalCode', label: '杂志编号' },
+  { value: 'journalCode', label: JOURNAL_CODE_LABEL },
   { value: 'orderNo', label: '订单编号' },
   { value: 'category', label: '行业分类' },
   { value: 'unitType', label: '企业类型' },
@@ -65,13 +71,6 @@ const searchFieldOptions = [
   { value: 'receivePostcode', label: '读者邮编' },
   { value: 'sendUser', label: '寄书人' },
 ];
-
-const magazineOptions = computed(() => [
-  {
-    value: 'ddhl',
-    label: preferences.app.name || '默认杂志',
-  },
-]);
 
 const meetingOptions = ref<{ label: string; value: number }[]>([]);
 
@@ -128,7 +127,7 @@ function onResetAdvanced() {
 
 const allColumns = [
   { key: 'action', title: '寄书登记', dataIndex: 'action', width: 100, fixed: 'left' as const },
-  { key: 'journalCode', title: '杂志编号', dataIndex: 'journalCode', width: 100 },
+  { key: 'journalCode', title: JOURNAL_CODE_LABEL, dataIndex: 'journalCode', width: 100 },
   { key: 'category', title: '行业分类', dataIndex: 'category', width: 150 },
   { key: 'unitType', title: '企业类型', dataIndex: 'unitType', width: 150 },
   { key: 'distributeType', title: '发行方式', dataIndex: 'distributeType', width: 150 },
@@ -431,11 +430,11 @@ onMounted(() => {
       <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center justify-end">
           <a-form layout="inline">
-            <a-form-item label="杂志名称">
+            <a-form-item :label="JOURNAL_NAME_LABEL">
               <a-select
                 v-model:value="filters.journalCode"
                 allow-clear
-                placeholder="--杂志名称--"
+                :placeholder="`--${JOURNAL_NAME_LABEL}--`"
                 style="width: 160px"
                 :options="magazineOptions"
               />
@@ -547,7 +546,7 @@ onMounted(() => {
           <a-descriptions-item label="邮寄数量">
             {{ formData.orderBookNum ?? '-' }}
           </a-descriptions-item>
-          <a-descriptions-item label="杂志编号">
+          <a-descriptions-item :label="JOURNAL_CODE_LABEL">
             {{ formData.journalCode || '-' }}
           </a-descriptions-item>
         </a-descriptions>

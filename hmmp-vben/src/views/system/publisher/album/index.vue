@@ -9,12 +9,16 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { VbenTableAction } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { VbenTiptap } from '@vben/plugins/tiptap';
-import { preferences } from '@vben/preferences';
 
 import { message, Modal, Upload } from 'antdv-next';
 
 import * as meetingApi from '#/api/biz/meeting';
 import * as publisherApi from '#/api/biz/publisher';
+import {
+  JOURNAL_CODE_LABEL,
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 defineOptions({ name: 'PublisherIssueAlbum' });
 
@@ -48,9 +52,11 @@ const filters = reactive({
   searchValue: '',
 });
 
+const { magazineOptions } = useJournalMagazine();
+
 const searchFieldOptions = [
   { value: 'albumId', label: '专辑ID' },
-  { value: 'journalCode', label: '杂志编号' },
+  { value: 'journalCode', label: JOURNAL_CODE_LABEL },
   { value: 'nameCn', label: '中文名' },
   { value: 'nameEn', label: '英文名' },
   { value: 'createBy', label: '添加用户' },
@@ -65,14 +71,6 @@ const albumTypeOptions = [
   { value: '4', label: '特邀综述' },
   { value: '5', label: '特邀专题' },
 ];
-
-/** antdv-next Select 不会转发 a-select-option 子节点，必须用 options */
-const magazineOptions = computed(() => [
-  {
-    value: 'ddhl',
-    label: preferences.app.name || '当代护理',
-  },
-]);
 
 const meetingOptions = ref<{ label: string; value: number }[]>([]);
 
@@ -96,7 +94,7 @@ async function loadMeetingOptions() {
 const allColumns = [
   {
     key: 'journalCode',
-    title: '杂志编号',
+    title: JOURNAL_CODE_LABEL,
     dataIndex: 'journalCode',
     width: 120,
   },
@@ -435,7 +433,7 @@ const richEditorImageUpload = {
 function buildPayload(): PublisherApi.Album | null {
   const journalId = formData.journal_id?.trim();
   if (!journalId) {
-    message.warning('请选择杂志名称');
+    message.warning(`请选择${JOURNAL_NAME_LABEL}`);
     return null;
   }
   const cnName = formData.cn_name?.trim();
@@ -527,7 +525,7 @@ onMounted(() => {
     <div class="mb-4 flex items-center justify-between">
       <div class="flex items-center justify-end">
         <a-form layout="inline">
-          <a-form-item label="杂志名称">
+          <a-form-item :label="JOURNAL_NAME_LABEL">
             <a-select
               v-model:value="filters.journalCode"
               allow-clear
@@ -634,7 +632,7 @@ onMounted(() => {
       <a-form layout="vertical" class="album-form">
         <a-divider orientation="left">基础信息</a-divider>
         <div class="form-grid">
-          <a-form-item label="杂志名称" name="journal_id" required>
+          <a-form-item :label="JOURNAL_NAME_LABEL" name="journal_id" required>
             <a-select
               v-model:value="formData.journal_id"
               placeholder="请选择杂志"

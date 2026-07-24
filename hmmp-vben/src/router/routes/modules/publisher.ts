@@ -117,12 +117,47 @@ const routes: RouteRecordRaw[] = [
         ],
       },
       {
+        name: 'PublisherNews',
+        path: 'news',
+        component: () => import('#/layouts/parent-view.vue'),
+        meta: {
+          title: '新闻管理',
+          order: 2,
+          icon: 'lucide:newspaper',
+        },
+        redirect: '/publisher/news/column',
+        children: [
+        {
+          name: 'PublisherNewsColumn',
+          path: 'column',
+          component: () => import('#/views/system/publisher/news/column/index.vue'),
+          meta: {
+            title: '栏目管理',
+            order: 1,
+            icon: 'lucide:layout-list',
+            keepAlive: true,
+          },
+        },
+        {
+          name: 'PublisherNewsContent',
+          path: 'content',
+          component: () => import('#/views/system/publisher/news/content/index.vue'),
+          meta: {
+            title: '内容管理',
+            order: 2,
+            icon: 'lucide:file-text',
+            keepAlive: true,
+          },
+        },
+        ],
+      },
+      {
         name: 'PublisherReader',
         path: 'reader',
         component: () => import('#/layouts/parent-view.vue'),
         meta: {
           title: '读者用户管理',
-          order: 2,
+          order: 3,
           icon: 'lucide:users',
         },
         redirect: '/publisher/reader/list',
@@ -157,7 +192,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/layouts/parent-view.vue'),
         meta: {
           title: '征订管理',
-          order: 3,
+          order: 4,
           icon: 'lucide:shopping-bag',
         },
         redirect: '/publisher/order/price',
@@ -291,7 +326,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/layouts/parent-view.vue'),
         meta: {
           title: '精准推送管理',
-          order: 4,
+          order: 5,
           icon: 'lucide:radar',
         },
         redirect: '/publisher/push/subscriber',

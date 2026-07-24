@@ -60,8 +60,8 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
-    name: 'GenEdit',
-    path: '/tool/gen/edit',
+    name: 'SystemToolGenEdit',
+    path: '/system/tool/gen/edit',
     component: () => import('#/views/tool/gen/edit.vue'),
     meta: {
       hideInMenu: true,

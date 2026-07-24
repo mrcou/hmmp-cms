@@ -2,10 +2,9 @@
 /**
  * 批量发布文章 —— 按过刊样表一对一导入 Excel 元数据，或 ZIP 导入全文 PDF
  */
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 import { IconifyIcon } from '@vben/icons';
-import { preferences } from '@vben/preferences';
 
 import { message, Upload } from 'antdv-next';
 
@@ -13,27 +12,36 @@ import {
   batchImportArticles,
   downloadArticleImportTemplate,
 } from '#/api/biz/publisher';
+import {
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 const submitting = ref(false);
 const updateSupport = ref(false);
 const fileList = ref<any[]>([]);
 
+const { journalCode, magazineOptions } = useJournalMagazine();
+
 const formState = reactive({
-  magazineId: 'default' as string,
+  magazineId: '' as string,
 });
 
+watch(
+  journalCode,
+  (code) => {
+    if (code) {
+      formState.magazineId = code;
+    }
+  },
+  { immediate: true },
+);
+
 const formLabelWidth = '170px';
-/** 杂志名称 / 文件路径 input 同宽 */
+/** 期刊名称 / 文件路径 input 同宽 */
 const formControlWidth = '300px';
 /** 保存 / 下载导入模板按钮宽度 */
 const actionBtnWidth = '10em';
-
-const magazineOptions = computed(() => [
-  {
-    value: 'default',
-    label: preferences.app.name || '默认杂志',
-  },
-]);
 
 const selectedFile = computed(() => fileList.value[0]?.originFileObj as File | undefined);
 
@@ -108,11 +116,12 @@ async function handleSubmit() {
         :wrapper-col="{ style: { maxWidth: 'none' } }"
         class="max-w-4xl"
       >
-        <a-form-item label="杂志名称" required>
+        <a-form-item :label="JOURNAL_NAME_LABEL" required>
           <a-select
             v-model:value="formState.magazineId"
             :options="magazineOptions"
-            placeholder="请选择杂志"
+            :placeholder="`请先在站群设置中配置${JOURNAL_NAME_LABEL}`"
+            disabled
             :style="{ width: formControlWidth }"
           />
         </a-form-item>
@@ -199,7 +208,7 @@ async function handleSubmit() {
         </ol>
 
         <div class="text-muted-foreground mt-4">
-          样表字段：杂志编号、稿件编号、中文/英文标题、中文/英文摘要、中文/英文关键词、基金中/英文名、起始/截止页码、投稿/最后修改/发布时间、年、卷、期、栏目编号/名称、参考文献、引用文本、作者及单位中英文、DOI、浏览/下载/HTML浏览/被引/知网引用次数、网址。
+          样表字段：期刊编号、稿件编号、中文/英文标题、中文/英文摘要、中文/英文关键词、基金中/英文名、起始/截止页码、投稿/最后修改/发布时间、年、卷、期、栏目编号/名称、参考文献、引用文本、作者及单位中英文、DOI、浏览/下载/HTML浏览/被引/知网引用次数、网址。
         </div>
       </div>
     </a-card>

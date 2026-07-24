@@ -7,12 +7,14 @@ import type { PublisherApi } from '#/api/biz/publisher';
 import { computed, onMounted, reactive, ref } from 'vue';
 
 import { IconifyIcon } from '@vben/icons';
-import { preferences } from '@vben/preferences';
-
 import { message, Modal } from 'antdv-next';
 
 import * as meetingApi from '#/api/biz/meeting';
 import * as publisherApi from '#/api/biz/publisher';
+import {
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 defineOptions({ name: 'PublisherIssueComment' });
 
@@ -44,12 +46,7 @@ const searchFieldOptions = [
   { value: 'userName', label: '评论用户' },
 ];
 
-const magazineOptions = computed(() => [
-  {
-    value: 'ddhl',
-    label: preferences.app.name || '默认杂志',
-  },
-]);
+const { magazineOptions } = useJournalMagazine();
 
 const meetingOptions = ref<{ label: string; value: number }[]>([]);
 
@@ -394,7 +391,7 @@ onMounted(() => {
       <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center justify-end">
           <a-form layout="inline">
-            <a-form-item label="杂志名称">
+            <a-form-item :label="JOURNAL_NAME_LABEL">
               <a-select
                 v-model:value="filters.journalCode"
                 allow-clear

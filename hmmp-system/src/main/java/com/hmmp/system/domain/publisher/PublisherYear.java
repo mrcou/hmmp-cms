@@ -22,6 +22,9 @@ public class PublisherYear extends BaseEntity
     /** 年份 */
     private Integer year;
 
+    /** 期数 */
+    private String period;
+
     /** 卷号 */
     private Integer volume;
 
@@ -71,6 +74,16 @@ public class PublisherYear extends BaseEntity
     public void setYear(Integer year)
     {
         this.year = year;
+    }
+
+    public String getPeriod()
+    {
+        return period;
+    }
+
+    public void setPeriod(String period)
+    {
+        this.period = period;
     }
 
     public Integer getVolume()
@@ -149,6 +162,7 @@ public class PublisherYear extends BaseEntity
             .append("yearId", getYearId())
             .append("journalCode", getJournalCode())
             .append("year", getYear())
+            .append("period", getPeriod())
             .append("volume", getVolume())
             .append("nameCn", getNameCn())
             .append("nameEn", getNameEn())

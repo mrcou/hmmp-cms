@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hmmp.system.mapper.publisher.PublisherNewsColumnMapper">
+
+    <resultMap type="com.hmmp.system.domain.publisher.PublisherNewsColumn" id="PublisherNewsColumnResult">
+        <id property="columnId" column="column_id" />
+        <result property="columnName" column="column_name" />
+        <result property="sortOrder" column="sort_order" />
+        <result property="contentCount" column="content_count" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <select id="selectNewsColumnList" parameterType="com.hmmp.system.domain.publisher.PublisherNewsColumn" resultMap="PublisherNewsColumnResult">
+        select c.column_id, c.column_name, c.sort_order, c.create_by, c.create_time,
+               c.update_by, c.update_time, count(n.content_id) as content_count
+        from publisher_news_column c
+        left join publisher_news_content n on n.column_id = c.column_id
+        <where>
+            <if test="columnName != null and columnName != ''">
+                and c.column_name like concat('%', #{columnName}, '%')
+            </if>
+        </where>
+        group by c.column_id, c.column_name, c.sort_order, c.create_by, c.create_time,
+                 c.update_by, c.update_time
+        order by c.sort_order asc, c.column_id asc
+    </select>
+
+    <select id="selectNewsColumnById" parameterType="Long" resultMap="PublisherNewsColumnResult">
+        select c.column_id, c.column_name, c.sort_order, c.create_by, c.create_time,
+               c.update_by, c.update_time, count(n.content_id) as content_count
+        from publisher_news_column c
+        left join publisher_news_content n on n.column_id = c.column_id
+        where c.column_id = #{columnId}
+        group by c.column_id, c.column_name, c.sort_order, c.create_by, c.create_time,
+                 c.update_by, c.update_time
+    </select>
+
+    <select id="checkNewsColumnNameUnique" parameterType="com.hmmp.system.domain.publisher.PublisherNewsColumn" resultMap="PublisherNewsColumnResult">
+        select column_id, column_name, sort_order
+        from publisher_news_column
+        where column_name = #{columnName}
+        limit 1
+    </select>
+
+    <select id="countContentByColumnId" parameterType="Long" resultType="int">
+        select count(1) from publisher_news_content where column_id = #{columnId}
+    </select>
+
+    <insert id="insertNewsColumn" parameterType="com.hmmp.system.domain.publisher.PublisherNewsColumn" useGeneratedKeys="true" keyProperty="columnId">
+        insert into publisher_news_column
+        (column_name, sort_order, create_by, create_time)
+        values
+        (#{columnName}, #{sortOrder}, #{createBy}, sysdate())
+    </insert>
+
+    <update id="updateNewsColumn" parameterType="com.hmmp.system.domain.publisher.PublisherNewsColumn">
+        update publisher_news_column
+        <set>
+            <if test="columnName != null">column_name = #{columnName},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            update_by = #{updateBy},
+            update_time = sysdate()
+        </set>
+        where column_id = #{columnId}
+    </update>
+
+    <delete id="deleteNewsColumnByIds" parameterType="Long">
+        delete from publisher_news_column where column_id in
+        <foreach collection="array" item="columnId" open="(" separator="," close=")">
+            #{columnId}
+        </foreach>
+    </delete>
+</mapper>

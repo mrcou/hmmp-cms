@@ -9,7 +9,6 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { IconifyIcon } from '@vben/icons';
-import { preferences } from '@vben/preferences';
 
 import { message } from 'antdv-next';
 
@@ -19,6 +18,10 @@ import {
   exportPublishCycleList,
   getPublishCycleList,
 } from '#/api/biz/statistics';
+import {
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 defineOptions({ name: 'StatisticsIntegrativePublishCycle' });
 
@@ -72,12 +75,7 @@ function onNav(path: string) {
   if (path !== route.path) router.push(path);
 }
 
-const magazineOptions = computed(() => [
-  {
-    value: 'default',
-    label: preferences.app.name || 'HMMP管理系统',
-  },
-]);
+const { magazineOptions } = useJournalMagazine({ optionValue: 'default' });
 
 /** 筛选行（对齐示意图） */
 const filters = reactive({
@@ -438,7 +436,7 @@ onMounted(() => {
         <a-select
           v-model:value="filters.magazineId"
           allow-clear
-          placeholder="杂志名称"
+          :placeholder="JOURNAL_NAME_LABEL"
           style="width: 160px"
           @change="onSearch"
         >

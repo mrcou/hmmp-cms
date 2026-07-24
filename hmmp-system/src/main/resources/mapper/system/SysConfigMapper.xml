@@ -102,6 +102,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </set>
         where config_id = #{configId}
     </update>
+
+    <update id="updateConfigValue" parameterType="SysConfig">
+        update sys_config
+        set config_value = #{configValue},
+            update_by = #{updateBy},
+            update_time = sysdate()
+        where config_id = #{configId}
+    </update>
 	
     <delete id="deleteConfigById" parameterType="Long">
         delete from sys_config where config_id = #{configId}

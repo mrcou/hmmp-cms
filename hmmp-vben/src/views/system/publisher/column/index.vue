@@ -12,6 +12,11 @@ import { IconifyIcon } from '@vben/icons';
 import { message, Modal } from 'antdv-next';
 
 import * as publisherApi from '#/api/biz/publisher';
+import {
+  JOURNAL_CODE_LABEL,
+  JOURNAL_NAME_LABEL,
+  useJournalMagazine,
+} from '#/composables/use-journal-magazine';
 
 defineOptions({ name: 'PublisherIssueColumn' });
 
@@ -26,7 +31,7 @@ type SearchField =
   | 'needRecommender'
   | 'sequence';
 
-const magazineOptions = [{ value: 'ddhl', label: '当代护理' }];
+const { magazineOptions } = useJournalMagazine();
 
 const usageScopeOptions = [
   { value: '1', label: '投稿、内部查询、网刊发布' },
@@ -74,7 +79,7 @@ const filters = reactive({
 });
 
 const searchFieldOptions: { label: string; value: SearchField }[] = [
-  { value: 'journalCode', label: '杂志名称' },
+  { value: 'journalCode', label: JOURNAL_CODE_LABEL },
   { value: 'columnCode', label: '栏目ID' },
   { value: 'columnName', label: '中文栏目' },
   { value: 'columnEnName', label: '英文栏目' },
@@ -86,7 +91,7 @@ const searchFieldOptions: { label: string; value: SearchField }[] = [
 ];
 
 const allColumns = [
-  { key: 'journalCode', title: '杂志名称', dataIndex: 'journalCode', width: 120 },
+  { key: 'journalCode', title: JOURNAL_NAME_LABEL, dataIndex: 'journalCode', width: 120 },
   { key: 'columnCode', title: '栏目ID', dataIndex: 'columnCode', width: 120 },
   { key: 'columnName', title: '中文栏目', dataIndex: 'columnName', width: 150 },
   { key: 'columnEnName', title: '英文栏目', dataIndex: 'columnEnName', width: 150 },
@@ -118,7 +123,7 @@ function getMagazineLabel(value?: string) {
   if (!value) {
     return '';
   }
-  return magazineOptions.find((item) => item.value === value)?.label || value;
+  return magazineOptions.value.find((item) => item.value === value)?.label || value;
 }
 
 function normalizeIsPostColumn(
@@ -316,7 +321,7 @@ function buildPayload(): PublisherApi.Column | null {
   const columnCode = formData.columnCode?.trim();
   const columnName = formData.columnName?.trim();
   if (!journalCode) {
-    message.warning('请选择杂志名称');
+    message.warning(`请选择${JOURNAL_NAME_LABEL}`);
     return null;
   }
   if (!columnCode) {
@@ -401,7 +406,7 @@ onMounted(() => {
     <div class="mb-4 flex items-center justify-between">
       <div class="flex items-center justify-end">
         <a-form layout="inline">
-          <a-form-item label="杂志名称">
+          <a-form-item :label="JOURNAL_NAME_LABEL">
             <a-select
               v-model:value="filters.journalCode"
               allow-clear
@@ -506,7 +511,7 @@ onMounted(() => {
       class="column-form-drawer"
     >
       <a-form layout="vertical" class="column-form">
-        <a-form-item label="杂志名称">
+        <a-form-item :label="JOURNAL_NAME_LABEL">
           <a-select
             v-model:value="formData.journalCode"
             :options="magazineOptions"

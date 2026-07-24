@@ -8,6 +8,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <id     property="yearId"        column="year_id"          />
         <result property="journalCode"   column="journal_code"     />
         <result property="year"          column="year"             />
+        <result property="period"        column="period"           />
         <result property="volume"        column="volume"           />
         <result property="nameCn"        column="name_cn"          />
         <result property="nameEn"        column="name_en"          />
@@ -23,7 +24,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectPublisherYearVo">
-        select year_id, journal_code, year, volume, name_cn, name_en, catalog_file, is_free,
+        select year_id, journal_code, year, period, volume, name_cn, name_en, catalog_file, is_free,
                meeting_id, status, create_by, create_time, update_by, update_time, remark
         from publisher_year
     </sql>
@@ -33,6 +34,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <where>
             <if test="journalCode != null and journalCode != ''">AND journal_code = #{journalCode}</if>
             <if test="year != null">AND year = #{year}</if>
+            <if test="period != null and period != ''">AND period = #{period}</if>
             <if test="volume != null">AND volume = #{volume}</if>
             <if test="nameCn != null and nameCn != ''">AND name_cn like concat('%', #{nameCn}, '%')</if>
             <if test="nameEn != null and nameEn != ''">AND name_en like concat('%', #{nameEn}, '%')</if>
@@ -40,7 +42,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="meetingId != null">AND meeting_id = #{meetingId}</if>
             <if test="status != null and status != ''">AND status = #{status}</if>
         </where>
-        order by year desc, year_id desc
+        order by year desc, period desc, year_id desc
     </select>
 
     <select id="selectYearById" parameterType="Long" resultMap="PublisherYearResult">
@@ -57,10 +59,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <insert id="insertYear" parameterType="com.hmmp.system.domain.publisher.PublisherYear" useGeneratedKeys="true" keyProperty="yearId">
         insert into publisher_year (
-            journal_code, year, volume, name_cn, name_en, catalog_file, is_free, meeting_id,
+            journal_code, year, period, volume, name_cn, name_en, catalog_file, is_free, meeting_id,
             status, create_by, create_time, update_by, update_time, remark
         ) values (
-            #{journalCode}, #{year}, #{volume}, #{nameCn}, #{nameEn}, #{catalogFile}, #{isFree}, #{meetingId},
+            #{journalCode}, #{year}, #{period}, #{volume}, #{nameCn}, #{nameEn}, #{catalogFile}, #{isFree}, #{meetingId},
             #{status}, #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark}
         )
     </insert>
@@ -70,6 +72,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <set>
             <if test="journalCode != null">journal_code = #{journalCode},</if>
             <if test="year != null">year = #{year},</if>
+            <if test="period != null">period = #{period},</if>
             <if test="volume != null">volume = #{volume},</if>
             <if test="nameCn != null">name_cn = #{nameCn},</if>
             <if test="nameEn != null">name_en = #{nameEn},</if>

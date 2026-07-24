@@ -3,9 +3,11 @@ import { requestClient } from '#/api/request';
 export namespace PublisherApi {
   export interface Year {
     yearId?: number;
-    /** 杂志编号 */
+    /** 期刊编号 */
     journalCode?: string;
     year: number;
+    /** 期数 */
+    period?: string;
     /** 卷号 */
     volume?: number;
     /** 中文名 */
@@ -25,7 +27,7 @@ export namespace PublisherApi {
   export interface Issue {
     issueId?: number;
     yearId?: number;
-    /** 杂志编号 */
+    /** 期刊编号 */
     journalCode?: string;
     year: number;
     volume?: number;
@@ -88,7 +90,7 @@ export namespace PublisherApi {
 
   export interface Column {
     columnId?: number;
-    /** 杂志编号 */
+    /** 期刊编号 */
     journalCode?: string;
     /** 栏目名称 */
     columnName: string;
@@ -380,9 +382,9 @@ export namespace PublisherApi {
 
   export interface Album {
     albumId?: number;
-    /** 杂志名称/编号（旧表单字段 journal_id） */
+    /** 期刊名称/编号（旧表单字段 journal_id） */
     journal_id?: string;
-    /** 杂志编号 */
+    /** 期刊编号 */
     journalCode?: string;
     /** 专辑中文名（旧表单字段 cn_name） */
     cn_name?: string;

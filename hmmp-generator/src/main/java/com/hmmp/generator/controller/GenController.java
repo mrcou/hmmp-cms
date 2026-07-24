@@ -43,7 +43,7 @@ import com.hmmp.generator.service.IGenTableService;
  * @author ruoyi
  */
 @RestController
-@RequestMapping("/tool/gen")
+@RequestMapping("/system/tool/gen")
 public class GenController extends BaseController
 {
     @Autowired

@@ -128,9 +128,23 @@ INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`
 (2110, '虚拟专辑管理', 2101, 7, 'album', 'system/publisher/album/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:album:list', 'lucide:library', 'admin', NOW(), '', NULL, ''),
 (2111, '知网文章标题核对', 2101, 8, 'cnki', 'system/publisher/article/cnki', NULL, '', 1, 0, 'C', '0', '0', 'publisher:article:cnkiCheck', 'lucide:file-search', 'admin', NOW(), '', NULL, '');
 
+-- 新闻管理 (menu_id=2140, parent_id=2100)
+INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES
+(2140, '新闻管理', 2100, 2, 'news', NULL, NULL, '', 1, 0, 'M', '0', '0', '', 'lucide:newspaper', 'admin', NOW(), '', NULL, '新闻栏目与内容管理'),
+(2141, '栏目管理', 2140, 1, 'column', 'system/publisher/news/column/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:newsColumn:list', 'lucide:layout-list', 'admin', NOW(), '', NULL, ''),
+(2143, '查询新闻栏目', 2141, 1, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:newsColumn:query', '#', 'admin', NOW(), '', NULL, ''),
+(2144, '新增新闻栏目', 2141, 2, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:newsColumn:add', '#', 'admin', NOW(), '', NULL, ''),
+(2145, '修改新闻栏目', 2141, 3, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:newsColumn:edit', '#', 'admin', NOW(), '', NULL, ''),
+(2146, '删除新闻栏目', 2141, 4, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:newsColumn:remove', '#', 'admin', NOW(), '', NULL, ''),
+(2142, '内容管理', 2140, 2, 'content', 'system/publisher/news/content/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:newsContent:list', 'lucide:file-text', 'admin', NOW(), '', NULL, ''),
+(2147, '查询新闻内容', 2142, 1, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:newsContent:query', '#', 'admin', NOW(), '', NULL, ''),
+(2148, '新增新闻内容', 2142, 2, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:newsContent:add', '#', 'admin', NOW(), '', NULL, ''),
+(2149, '修改新闻内容', 2142, 3, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:newsContent:edit', '#', 'admin', NOW(), '', NULL, ''),
+(2150, '删除新闻内容', 2142, 4, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:newsContent:remove', '#', 'admin', NOW(), '', NULL, '');
+
 -- 读者用户管理 (menu_id=2112, parent_id=2100)
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES
-(2112, '读者用户管理', 2100, 2, 'reader', NULL, NULL, '', 1, 0, 'M', '0', '0', '', 'lucide:users', 'admin', NOW(), '', NULL, '读者用户二级目录'),
+(2112, '读者用户管理', 2100, 3, 'reader', NULL, NULL, '', 1, 0, 'M', '0', '0', '', 'lucide:users', 'admin', NOW(), '', NULL, '读者用户二级目录'),
 (2125, '读者管理', 2112, 1, 'list', 'system/publisher/reader/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:reader:list', 'lucide:user', 'admin', NOW(), '', NULL, ''),
 (2113, '新增读者', 2125, 1, '', '', NULL, '', 1, 0, 'F', '0', '0', 'publisher:reader:add', '#', 'admin', NOW(), '', NULL, ''),
 (2114, '订户管理', 2112, 2, 'subscriber', 'system/publisher/subscriber/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:subscriber:list', 'lucide:user-check', 'admin', NOW(), '', NULL, ''),
@@ -138,7 +152,7 @@ INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`
 
 -- 征订管理 (menu_id=2116, parent_id=2100)
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES
-(2116, '征订管理', 2100, 3, 'order', NULL, NULL, '', 1, 0, 'M', '0', '0', '', 'lucide:shopping-bag', 'admin', NOW(), '', NULL, '征订管理二级目录'),
+(2116, '征订管理', 2100, 4, 'order', NULL, NULL, '', 1, 0, 'M', '0', '0', '', 'lucide:shopping-bag', 'admin', NOW(), '', NULL, '征订管理二级目录'),
 (2117, '期刊定价管理', 2116, 1, 'price', 'system/publisher/price/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:price:list', 'lucide:tag', 'admin', NOW(), '', NULL, ''),
 (2118, '期刊库存管理', 2116, 2, 'inventory', 'system/publisher/inventory/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:inventory:list', 'lucide:package', 'admin', NOW(), '', NULL, ''),
 (2130, '未收款订单', 2116, 3, 'unpaid', 'system/publisher/order/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:order:unpaid', 'lucide:circle-dollar-sign', 'admin', NOW(), '', NULL, ''),
@@ -154,7 +168,7 @@ INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`
 
 -- 精准推送管理 (menu_id=2127, parent_id=2100)
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES
-(2127, '精准推送管理', 2100, 4, 'push', NULL, NULL, '', 1, 0, 'M', '0', '0', '', 'lucide:radar', 'admin', NOW(), '', NULL, '精准推送二级目录'),
+(2127, '精准推送管理', 2100, 5, 'push', NULL, NULL, '', 1, 0, 'M', '0', '0', '', 'lucide:radar', 'admin', NOW(), '', NULL, '精准推送二级目录'),
 (2128, '订阅用户管理', 2127, 1, 'subscriber', 'system/publisher/push/subscriber/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:push:subscriber', 'lucide:bell', 'admin', NOW(), '', NULL, ''),
 (2129, '关键词推送', 2127, 2, 'keyword', 'system/publisher/push/keyword/index', NULL, '', 1, 0, 'C', '0', '0', 'publisher:push:keyword', 'lucide:key-round', 'admin', NOW(), '', NULL, '');
 

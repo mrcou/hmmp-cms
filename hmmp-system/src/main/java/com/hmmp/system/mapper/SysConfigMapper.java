@@ -59,6 +59,14 @@ public interface SysConfigMapper
     public int updateConfig(SysConfig config);
 
     /**
+     * 修改参数键值（允许空字符串）
+     * 
+     * @param config 参数配置信息
+     * @return 结果
+     */
+    public int updateConfigValue(SysConfig config);
+
+    /**
      * 删除参数配置
      * 
      * @param configId 参数ID
